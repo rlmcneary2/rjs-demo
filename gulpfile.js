@@ -8,6 +8,8 @@ const webpack = require("webpack");
 const webpackConfig = require("./webpack.config.js");
 
 
+const _APP_JS_ENTRY_FILE = "index.js";
+const _APP_JS_OUTPUT_FILE = "app.js";
 const _SRC_APP = "src/app";
 const _DIST_APP_DIR = "app";
 const _DIST_DIR = "dist";
@@ -52,8 +54,8 @@ gulp.task("release", gulp.series("set-release", "clean", "build-application"), c
 function buildAppJavascript() {
     return new Promise((resolve, reject) => {
         const config = Object.create(webpackConfig);
-        config.entry = `./${_SRC_APP}/index.js`;
-        config.output = { filename: "app.js", path: `${_DIST_DIR}/app` };
+        config.entry = `./${_SRC_APP}/${_APP_JS_ENTRY_FILE}`;
+        config.output = { filename: _APP_JS_OUTPUT_FILE, path: `${_DIST_DIR}/${_DIST_APP_DIR}` };
         config.plugins = config.plugins || [];
         config.plugins.push(new webpack.DefinePlugin({ "process.env": { NODE_ENV: process.env.NODE_ENV } }));
 
