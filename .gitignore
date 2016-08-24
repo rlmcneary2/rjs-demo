@@ -46,6 +46,6 @@ Temporary Items
 # build related
 .vscode/**
 !.vscode/settings.json
-build
+dist
 node_modules
 npm-debug.log
