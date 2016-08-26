@@ -6,6 +6,8 @@
   "scripts": {
     "clean": "gulp clean",
     "debug": "gulp debug",
+    "package:debug": "gulp package-debug",
+    "package:release": "gulp package-release",
     "release": "gulp release"
   },
   "repository": {
