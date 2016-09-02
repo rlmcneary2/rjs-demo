@@ -6,8 +6,8 @@ const gutil = require("gulp-util");
 const packager = require("electron-packager");
 const rimraf = require("rimraf");
 const webpack = require("webpack");
-const webpackConfig = require("./webpack.config.js");
-//const webpackElectronConfig = require("./webpack-electron.config.js");
+// const webpackConfig = require("./webpack.config.js");
+const webpackElectronConfig = require("./webpack-electron.config.js");
 
 
 const _APP_JS_ENTRY_FILE = "index.js";
@@ -77,11 +77,16 @@ gulp.task("package-release", gulp.series("set-release", "package-task"), callbac
 
 function buildAppJavascript() {
     return new Promise((resolve, reject) => {
-        const config = Object.create(webpackConfig);
+        const config = Object.create(/*webpackConfig*/webpackElectronConfig);
         config.entry = `./${_SRC_APP}/${_APP_JS_ENTRY_FILE}`;
         config.output = { filename: _APP_JS_OUTPUT_FILE, path: `${_DIST_DIR}/${_DIST_APP_DIR}` };
         config.plugins = config.plugins || [];
         config.plugins.push(new webpack.DefinePlugin({ "process.env": { NODE_ENV: process.env.NODE_ENV } }));
+
+        if (process.env.NODE_ENV === "debug") {
+            config.debug = true;
+            config.devtool = "source-maps";
+        }
 
         webpack(config, (err, stats) => {
             if (err) {
@@ -103,6 +108,11 @@ function buildAppJavascript() {
 //         config.output = { filename: _ELECTRON_JS_OUTPUT_FILE, path: `${_DIST_DIR}/${_DIST_APP_DIR}` };
 //         config.plugins = config.plugins || [];
 //         config.plugins.push(new webpack.DefinePlugin({ "process.env": { NODE_ENV: process.env.NODE_ENV } }));
+
+//         if (process.env.NODE_ENV === "debug") {
+//             config.debug = true;
+//             config.devtool = "source-maps";
+//         }
 
 //         webpack(config, (err, stats) => {
 //             if (err) {
