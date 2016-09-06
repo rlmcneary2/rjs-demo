@@ -5,20 +5,22 @@ module.exports = {
     module: {
         loaders: [
             {
-                loader: "babel-loader",
+                exclude: /(node_modules|bower_components)/,
+                loader: "babel",
                 query: {
                     presets: ["react", "stage-2"],
                     retainLines: true,
                 },
-                test: /.jsx$/
+                test: /\.jsx$/
             },
             {
-                loader: "babel-loader",
+                exclude: /(node_modules|bower_components)/,
+                loader: "babel",
                 query: {
                     presets: ["stage-2"],
                     retainLines: true,
                 },
-                test: /.js$/
+                test: /\.js$/
             }
         ]
     }
