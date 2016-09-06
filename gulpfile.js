@@ -6,7 +6,6 @@ const gutil = require("gulp-util");
 const packager = require("electron-packager");
 const rimraf = require("rimraf");
 const webpack = require("webpack");
-// const webpackConfig = require("./webpack.config.js");
 const webpackElectronConfig = require("./webpack-electron.config.js");
 
 
@@ -19,6 +18,9 @@ const _SRC_ELECTRON = "src/electron";
 const _DIST_APP_DIR = "app";
 const _DIST_DIR = "dist";
 const _DIST_PACKAGE_DIR = "package";
+
+
+let _isProduction = false;
 
 
 gulp.task("build-application", gulp.parallel(buildAppJavascript, () => copyHtml(_SRC_APP, _DIST_APP_DIR)));
@@ -43,7 +45,7 @@ gulp.task("clean", () => {
 });
 
 gulp.task("set-debug", callback => {
-    process.env.NODE_ENV = "debug";
+    process.env.NODE_ENV = "\"debug\""; // Yes, this must be defined as a string with quotes.
     callback();
 });
 
@@ -53,7 +55,8 @@ gulp.task("debug", gulp.series("set-debug", gulp.parallel("build-application", "
 });
 
 gulp.task("set-release", callback => {
-    process.env.NODE_ENV = "production";
+    _isProduction = true;
+    process.env.NODE_ENV = "\"production\""; // Yes, this must be defined as a string with quotes.
     callback();
 });
 
@@ -81,9 +84,9 @@ function buildAppJavascript() {
         config.entry = `./${_SRC_APP}/${_APP_JS_ENTRY_FILE}`;
         config.output = { filename: _APP_JS_OUTPUT_FILE, path: `${_DIST_DIR}/${_DIST_APP_DIR}` };
         config.plugins = config.plugins || [];
-        config.plugins.push(new webpack.DefinePlugin({ "process.env": { NODE_ENV: process.env.NODE_ENV } }));
+        config.plugins.splice(0, 0, new webpack.DefinePlugin({ "process.env": { NODE_ENV: process.env.NODE_ENV } }));
 
-        if (process.env.NODE_ENV === "debug") {
+        if (!_isProduction) {
             config.debug = true;
             config.devtool = "source-maps";
         }
@@ -109,7 +112,7 @@ function buildAppJavascript() {
 //         config.plugins = config.plugins || [];
 //         config.plugins.push(new webpack.DefinePlugin({ "process.env": { NODE_ENV: process.env.NODE_ENV } }));
 
-//         if (process.env.NODE_ENV === "debug") {
+//         if (!_isProduction) {
 //             config.debug = true;
 //             config.devtool = "source-maps";
 //         }
@@ -140,7 +143,7 @@ function copyHtml(sourceDir, destinationDir) {
 function electronPackager(options) {
     return new Promise((resolve, reject) => {
         const packagerOptions = Object.assign({
-            asar: process.env.NODE_ENV !== "debug",
+            asar: _isProduction,
             dir: `./${_DIST_DIR}/${_DIST_APP_DIR}`,
             name: "electron-app",
             arch: "x64",
