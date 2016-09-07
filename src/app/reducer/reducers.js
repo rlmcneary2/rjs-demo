@@ -1,6 +1,7 @@
 "use strict";
 
 
+const actions = require("../action/actions");
 const redux = require("redux");
 
 
@@ -9,6 +10,17 @@ module.exports = redux.combineReducers({
 });
 
 
-function locale(state = { region: "US", tag: "en-US" }, action) {
-    return state;
+function locale(state = { tag: "en-US" }, action) {
+
+    let nextState = state;
+    switch (action.types) {
+
+        case actions.types.LocaleChanged: {
+            nextState.tag = action.tag;
+            break;
+        }
+
+    }
+
+    return nextState;
 }
