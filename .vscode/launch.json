@@ -2,7 +2,7 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "name": "Gulp debug",
+            "name": "Debug gulpfile",
             "type": "node",
             "request": "launch",
             "program": "${workspaceRoot}/node_modules/gulp/bin/gulp.js",
@@ -28,7 +28,7 @@
             "type": "node",
             "request": "launch",
             "program": "${workspaceRoot}/dist/app/main.js",
-            "stopOnEntry": false,
+            "stopOnEntry": true,
             "args": [],
             "cwd": "${workspaceRoot}/dist/app",
             "preLaunchTask": null,
