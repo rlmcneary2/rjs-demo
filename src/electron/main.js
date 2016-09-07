@@ -3,7 +3,11 @@
 
 const app = require("electron").app;
 const BrowserWindow = require("electron").BrowserWindow;
+const path = require("path");
 const rendererEvents = require("./rendererEvents");
+
+
+const _URL_PARAMS_JSON_FILE = "urlparams.json";
 
 
 process.env.ELECTRON_HIDE_INTERNAL_MODULES = "true";
@@ -12,7 +16,14 @@ process.env.ELECTRON_HIDE_INTERNAL_MODULES = "true";
 let window;
 app
     .on("ready", () => {
-        createMainWindow();
+        let query;
+        try {
+            query = require(`./${_URL_PARAMS_JSON_FILE}`);
+        } catch (err) {
+            console.log(`W-- URL params file: ${err.message || JSON.stringify(err)}`);
+        }
+
+        createMainWindow(query);
         rendererEvents.connect();
     })
     .on("window-all-closed", () => {
@@ -38,13 +49,16 @@ function createMainWindow(query) {
     window.toggleDevTools();
 
     let queryString = "";
-    if (query && 0 < query.length) {
-        queryString = "?" + query
-            .map(item => {
-                return `${item.name}=${item.value}`;
+    const queryKeys = query ? Object.keys(query) : [];
+    if (0 < queryKeys.length) {
+        queryString = "?" + queryKeys
+            .map(key => {
+                return `${key}=${query[key]}`;
             })
             .join("&");
     }
 
-    window.loadURL(`file://${__dirname}/index.html${queryString}`);
+    const url = `file://${path.join(__dirname, "index.html")}${queryString}`;
+    console.log(`d-- loading URL: ${url}`);
+    window.loadURL(url);
 }

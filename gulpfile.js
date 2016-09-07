@@ -1,8 +1,10 @@
 "use strict";
 
 
+const fs = require("fs");
 const gulp = require("gulp");
 const gutil = require("gulp-util");
+const mkdirp = require("mkdirp");
 const packager = require("electron-packager");
 const rimraf = require("rimraf");
 const webpack = require("webpack");
@@ -13,11 +15,13 @@ const _APP_JS_ENTRY_FILE = "index.js";
 const _APP_JS_OUTPUT_FILE = "app.js";
 //const _ELECTRON_JS_ENTRY_FILE = "main.js";
 //const _ELECTRON_JS_OUTPUT_FILE = "main.js";
-const _SRC_APP = "src/app";
-const _SRC_ELECTRON = "src/electron";
 const _DIST_APP_DIR = "app";
 const _DIST_DIR = "dist";
 const _DIST_PACKAGE_DIR = "package";
+const _SRC_APP = "src/app";
+const _SRC_ELECTRON = "src/electron";
+const _URL_PARAMS_REQUIRE_FILE = "urlparams.js";
+const _URL_PARAMS_OUTPUT_FILE = "urlparams.json";
 
 
 let _isProduction = false;
@@ -44,13 +48,17 @@ gulp.task("clean", () => {
     });
 });
 
+gulp.task("create-url-params", () => {
+    return createUrlParams();
+});
+
 gulp.task("set-debug", callback => {
     process.env.NODE_ENV = "\"debug\""; // Yes, this must be defined as a string with quotes.
     callback();
 });
 
 // All the tasks required by this task must be defined above it.
-gulp.task("debug", gulp.series("set-debug", gulp.parallel("build-application", "build-electron")), callback => {
+gulp.task("debug", gulp.series("set-debug", "create-url-params", gulp.parallel("build-application", "build-electron")), callback => {
     callback();
 });
 
@@ -61,7 +69,7 @@ gulp.task("set-release", callback => {
 });
 
 // All the tasks required by this task must be defined above it.
-gulp.task("release", gulp.series("set-release", "clean", gulp.parallel("build-application", "build-electron")), callback => {
+gulp.task("release", gulp.series("set-release", "clean", "create-url-params", gulp.parallel("build-application", "build-electron")), callback => {
     callback();
 });
 
@@ -138,6 +146,49 @@ function copyFiles(sourceDir, destinationDir, ext) {
 function copyHtml(sourceDir, destinationDir) {
     return gulp.src([`${sourceDir}/*.html`, `${sourceDir}/**/*.html`])
         .pipe(gulp.dest(`${_DIST_DIR}/${destinationDir}/`));
+}
+
+function createDirectory(directoryPath) {
+    return new Promise(resolve => {
+        mkdirp(directoryPath, null, err => {
+            resolve(err);
+        });
+    });
+}
+
+function createUrlParams() {
+    return new Promise(resolve => {
+        let config = {};
+        try {
+            // The URL params javascript file is a module that exports a
+            // function. The exported function takes a single boolean argument,
+            // if true a production build is being compiled, if false it is not
+            // a production build. The exported function returns an object
+            // whose keys and values will become URL parameters. 
+            const configFunc = require(`./${_URL_PARAMS_REQUIRE_FILE}`);
+
+            config = configFunc(_isProduction);
+
+            const destinationDirectory = `${_DIST_DIR}/${_DIST_APP_DIR}`;
+            createDirectory(destinationDirectory)
+                .then(errDir => {
+                    if (errDir) {
+                        console.log(`createUrlParams - error creating directory: ${errDir.message || JSON.stringify(errDir)}`);
+                    }
+
+                    fs.writeFile(`${destinationDirectory}/${_URL_PARAMS_OUTPUT_FILE}`, JSON.stringify(config, null, _isProduction ? 0 : 4), errWrite => {
+                        if (errWrite) {
+                            console.log(`createUrlParams - error writing file: ${errWrite.message || JSON.stringify(errWrite)}`);
+                        }
+
+                        resolve();
+                    });
+                });
+        } catch (err) {
+            console.log(`createUrlParams - error: ${err.message || JSON.stringify(err)}`);
+            resolve();
+        }
+    });
 }
 
 function electronPackager(options) {
