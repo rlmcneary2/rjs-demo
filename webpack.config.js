@@ -21,6 +21,11 @@ module.exports = {
                     retainLines: true,
                 },
                 test: /\.js$/
+            },
+            {
+                exclude: /(node_modules|bower_components)/,
+                loader: "json-loader",
+                test: /\.json$/
             }
         ]
     }
