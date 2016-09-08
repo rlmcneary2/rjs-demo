@@ -17,7 +17,7 @@ const reactContent = props => {
 reactContent.propTypes = {
     content: React.PropTypes.element.isRequired, // The application content.
     locale: React.PropTypes.string, // The locale of messages and numbers to display. Defaults to en-US.
-    messages: React.PropTypes.string, // The ICU messages for display. Defaults to an empty object.
+    messages: React.PropTypes.object, // The ICU messages for display. Defaults to an empty object.
     store: React.PropTypes.object.isRequired // The redux store.
 };
 
