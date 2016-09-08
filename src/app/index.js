@@ -11,7 +11,9 @@ const redux = require("redux");
 const url = require("url");
 
 
-const startupDelayMs = 1000; // Set this to allow the Electron application to load so the debugger can attach.
+const _content = require("./view/example.jsx");
+const _enUsMessages = require("../locale/en-US.json");
+const _startupDelayMs = 1000; // Set this to allow the Electron application to load so the debugger can attach.
 
 
 setTimeout(() => {
@@ -27,8 +29,9 @@ setTimeout(() => {
 
             // Add functions to configure the application here.
 
+            const content = createContent();
 
-            const props = createReactContentProps(locale, messages);
+            const props = createReactContentProps(content, locale, messages);
 
 
             // Include the application's root React component in the props as
@@ -46,7 +49,7 @@ setTimeout(() => {
             // });
         });
 
-}, startupDelayMs);
+}, _startupDelayMs);
 
 
 function renderReactContent(props) {
@@ -54,9 +57,13 @@ function renderReactContent(props) {
     ReactDOM.render(reactContent, document.getElementById("react-content"));
 }
 
-function createReactContentProps(locale, messages) {
+function createContent(props) {
+    return React.createElement(_content, props);
+}
+
+function createReactContentProps(content, locale, messages) {
     return {
-        content: React.createElement("h1", null, "Hello React world content!"),
+        content,
         locale,
         messages,
         store: redux.createStore(reducers)
@@ -88,11 +95,14 @@ function updateLocale(query = url.parse(window.location.href, true).query) {
             addLocaleData(localeData[language]);
         }
 
-        let messages;
+        let messages = {};
+        if (_enUsMessages) {
+            messages["en-US"] = _enUsMessages;
+        }
 
         // Get an object that contains the localized strings. That could be done by requiring the JSON files, downloading them from a server, or reading them from a file using IPC.
         // Return the object (messages) from the JSON file that matches the requested locale.
 
-        resolve({ locale, messages });
+        resolve({ locale, messages: messages[locale] });
     });
 }
