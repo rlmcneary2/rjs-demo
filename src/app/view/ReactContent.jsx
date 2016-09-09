@@ -6,7 +6,7 @@ const React = require("react");
 const Provider = require("react-redux").Provider;
 
 
-const reactContent = props => {
+const ReactContent = props => {
     return (
         <IntlProvider locale={props.locale || "en-US"} messages={props.messages || {}}>
             <Provider children={props.content} store={props.store} />
@@ -14,7 +14,7 @@ const reactContent = props => {
     );
 };
 
-reactContent.propTypes = {
+ReactContent.propTypes = {
     content: React.PropTypes.element.isRequired, // The application content.
     locale: React.PropTypes.string, // The locale of messages and numbers to display. Defaults to en-US.
     messages: React.PropTypes.object, // The ICU messages for display. Defaults to an empty object.
@@ -22,4 +22,4 @@ reactContent.propTypes = {
 };
 
 
-module.exports = reactContent;
+module.exports = ReactContent;
