@@ -8,6 +8,7 @@
     "debug": "gulp debug",
     "package:debug": "gulp package-debug",
     "package:release": "gulp package-release",
+    "prebuilt": "electron ./dist/app/ -devtools",
     "release": "gulp release"
   },
   "repository": {
