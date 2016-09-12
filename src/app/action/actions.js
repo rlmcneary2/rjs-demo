@@ -1,14 +1,17 @@
 "use strict";
 
 
-module.exports = {
+const locale = require("./locale");
 
-    types: Object.freeze({
-        LocaleChanged: "locale-changed"
-    }),
 
-    localeChanged(locale) {
-        return { tag: locale, type: this.types.LocaleChanged };
-    }
+module.exports = Object.assign({
 
-};
+    types: Object.freeze(Object.assign({},
+        locale.types
+        // Add additional action type definitions here.
+    )),
+
+},
+    locale.actions
+    // Add additional actions here.
+);
