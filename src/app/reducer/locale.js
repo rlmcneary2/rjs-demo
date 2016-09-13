@@ -4,7 +4,19 @@
 const actions = require("../action/actions");
 
 
-module.exports = (state = { tag: "en-US" }, action) => {
+/**
+ * Handles (reduces) locale actions to state.
+ * @module
+ */
+module.exports = handler;
+
+
+/**
+ * A function that handles (reduces) locale actions to state.
+ * @param {object} state The current local state. Defaults to an object with a tag property set to en-US. 
+ * @param {object} action The action with information to process.
+ */
+function handler(state = { tag: "en-US" }, action) {
 
     let nextState = state;
     switch (action.type) {
@@ -19,4 +31,4 @@ module.exports = (state = { tag: "en-US" }, action) => {
     }
 
     return nextState;
-};
+}
