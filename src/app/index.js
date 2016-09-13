@@ -1,6 +1,10 @@
 "use strict";
 
 
+// This file will be the first code executed in the renderer process (Chromium
+// V8 environment). It creates the root React component.
+
+
 const actions = require("./action/actions");
 const ipc = require("../electron/renderer/ipc");
 const React = require("react");

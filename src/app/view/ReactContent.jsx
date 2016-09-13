@@ -1,7 +1,7 @@
 "use strict";
 
 
-const App = require("./App.jsx");
+const App = require("./App.jsx"); // Replace the App component or its contents with your application.
 const IntlProvider = require("react-intl").IntlProvider;
 const React = require("react");
 const redux = require("react-redux");
@@ -24,6 +24,7 @@ const ReactContent = props => {
         messages: props.messages
     };
 
+    // Replace the App component or its contents with your application.
     return (
         <Provider {...providerProps}>
             <IntlProvider {...intlProps}>
