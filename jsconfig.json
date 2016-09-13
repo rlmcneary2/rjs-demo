@@ -11,6 +11,6 @@
         "gulpfile.js",
         "locale",
 		"node_modules",
-        "urlparams.js"
+        "rendererConfig.js"
 	]
 }

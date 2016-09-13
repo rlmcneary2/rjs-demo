@@ -20,8 +20,8 @@ const _DIST_DIR = "dist";
 const _DIST_PACKAGE_DIR = "package";
 const _SRC_APP = "src/app";
 const _SRC_ELECTRON = "src/electron";
-const _URL_PARAMS_REQUIRE_FILE = "urlparams.js";
-const _URL_PARAMS_OUTPUT_FILE = "urlparams.json";
+const _RENDERER_CONFIG_REQUIRE_FILE = "rendererConfig.js";
+const _RENDERER_CONFIG_OUTPUT_FILE = "rendererConfig.json";
 
 
 let _isProduction = false;
@@ -165,7 +165,7 @@ function createUrlParams() {
             // if true a production build is being compiled, if false it is not
             // a production build. The exported function returns an object
             // whose keys and values will become URL parameters. 
-            const configFunc = require(`./${_URL_PARAMS_REQUIRE_FILE}`);
+            const configFunc = require(`./${_RENDERER_CONFIG_REQUIRE_FILE}`);
 
             config = configFunc(_isProduction);
 
@@ -176,7 +176,7 @@ function createUrlParams() {
                         console.log(`createUrlParams - error creating directory: ${errDir.message || JSON.stringify(errDir)}`);
                     }
 
-                    fs.writeFile(`${destinationDirectory}/${_URL_PARAMS_OUTPUT_FILE}`, JSON.stringify(config, null, _isProduction ? 0 : 4), errWrite => {
+                    fs.writeFile(`${destinationDirectory}/${_RENDERER_CONFIG_OUTPUT_FILE}`, JSON.stringify(config, null, _isProduction ? 0 : 4), errWrite => {
                         if (errWrite) {
                             console.log(`createUrlParams - error writing file: ${errWrite.message || JSON.stringify(errWrite)}`);
                         }

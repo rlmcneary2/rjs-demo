@@ -1,13 +1,18 @@
 "use strict";
 
 
+// This file will be executed in the main process (the Node.js environment). It
+// constructs the UI portion of the application that will be displayed using
+// Chromium (the renderer process).
+
+
 const app = require("electron").app;
 const BrowserWindow = require("electron").BrowserWindow;
 const path = require("path");
 const rendererEvents = require("./rendererEvents");
 
 
-const _URL_PARAMS_JSON_FILE = "urlparams.json";
+const _RENDERER_CONFIG_OUTPUT_FILE = "rendererConfig.json";
 
 
 process.env.ELECTRON_HIDE_INTERNAL_MODULES = "true";
@@ -18,7 +23,7 @@ app
     .on("ready", () => {
         let query;
         try {
-            query = require(`./${_URL_PARAMS_JSON_FILE}`);
+            query = require(`./${_RENDERER_CONFIG_OUTPUT_FILE}`);
         } catch (err) {
             console.log(`W-- URL params file: ${err.message || JSON.stringify(err)}`);
         }
