@@ -19,7 +19,7 @@ const ReactContent = props => {
 
     const locale = props.locale;
     const intlProps = {
-        key: locale,
+        key: locale, // Set the key value to get React to re-render when the locale changes.
         locale,
         messages: props.messages
     };
@@ -35,12 +35,13 @@ const ReactContent = props => {
 
 ReactContent.propTypes = {
     locale: React.PropTypes.string, // The locale of messages and numbers to display. Defaults to en-US.
-    messages: React.PropTypes.object, // The ICU messages for display. Defaults to an empty object.
+    messages: React.PropTypes.object, // The ICU messages for a specific locale to display. Defaults to an empty object.
     store: React.PropTypes.object.isRequired // The redux store.
 };
 
 
 module.exports = redux.connect(mapStateToProps)(ReactContent);
+
 
 function mapStateToProps(state) {
     const props = {};
