@@ -42,16 +42,10 @@ app
             mainConfig = require(`./${_MAIN_CONFIG_OUTPUT_FILE}`);
         } catch (err) {
             console.log(`W-- main config file: ${err.message || JSON.stringify(err)}`);
+            mainConfig = {};
         }
 
-        let renderConfig;
-        try {
-            renderConfig = require(`./${_RENDER_CONFIG_OUTPUT_FILE}`);
-        } catch (err) {
-            console.log(`W-- render config file: ${err.message || JSON.stringify(err)}`);
-        }
-
-        createMainWindow(mainConfig, renderConfig);
+        createMainWindow(mainConfig);
         rendererEvents.connect();
     })
     .on("window-all-closed", () => {
@@ -59,7 +53,7 @@ app
     });
 
 
-function createMainWindow(mainConfig = {}, renderConfig = {}) {
+function createMainWindow(mainConfig) {
     const options = {
         autoHideMenuBar: true,
         fullscreenable: true,
@@ -74,15 +68,21 @@ function createMainWindow(mainConfig = {}, renderConfig = {}) {
         window = null;
     });
 
-    if (_args.hasOwnProperty("dev-tools")) {
-        let showDevTools = true;
-        if (mainConfig.hasOwnProperty("devTools") && !mainConfig.devTools) {
-            showDevTools = false;
-        }
+    initDevTools(window, mainConfig);
 
-        if (showDevTools) {
-            window.toggleDevTools();
-        }
+    const query = createRenderQuery();
+    const url = `file://${path.join(__dirname, "index.html")}${query}`;
+    console.log(`d-- loading URL: ${url}`);
+    window.loadURL(url);
+}
+
+function createRenderQuery() {
+    let renderConfig;
+    try {
+        renderConfig = require(`./${_RENDER_CONFIG_OUTPUT_FILE}`);
+    } catch (err) {
+        console.log(`W-- render config file: ${err.message || JSON.stringify(err)}`);
+        renderConfig = {};
     }
 
     let query = "";
@@ -95,7 +95,20 @@ function createMainWindow(mainConfig = {}, renderConfig = {}) {
             .join("&");
     }
 
-    const url = `file://${path.join(__dirname, "index.html")}${query}`;
-    console.log(`d-- loading URL: ${url}`);
-    window.loadURL(url);
+    return query;
+}
+
+function initDevTools(window, mainConfig) {
+    if (!_args.hasOwnProperty("dev-tools")) {
+        return;
+    }
+
+    let showDevTools = true;
+    if (mainConfig.hasOwnProperty("devTools") && !mainConfig.devTools) {
+        showDevTools = false;
+    }
+
+    if (showDevTools) {
+        window.toggleDevTools();
+    }
 }
