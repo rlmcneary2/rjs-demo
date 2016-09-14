@@ -5,6 +5,7 @@
   "main": "index.js",
   "scripts": {
     "clean": "gulp clean",
+    "clean:default:files": "gulp clean-default-files",
     "debug": "gulp debug",
     "package:debug": "gulp package-debug",
     "package:release": "gulp package-release",
