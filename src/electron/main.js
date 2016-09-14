@@ -12,23 +12,47 @@ const path = require("path");
 const rendererEvents = require("./rendererEvents");
 
 
-const _RENDERER_CONFIG_OUTPUT_FILE = "rendererConfig.json";
+const _MAIN_CONFIG_OUTPUT_FILE = "mainConfig.json";
+const _RENDER_CONFIG_OUTPUT_FILE = "renderConfig.json";
 
 
 process.env.ELECTRON_HIDE_INTERNAL_MODULES = "true";
 
 
+debugger;
+const _args = {};
+process.argv.forEach(arg => {
+    if (arg[0] !== "-" || arg.startsWith("--")) {
+        return;
+    }
+
+    const equalsIndex = arg.indexOf("=");
+    if (1 < equalsIndex) {
+        _args[arg.substring(1, equalsIndex)] = arg.substring(equalsIndex + 1);
+    } else if (equalsIndex < 0) {
+        _args[arg.substring(1)] = undefined;
+    }
+});
+
+
 let window;
 app
     .on("ready", () => {
-        let query;
+        let mainConfig;
         try {
-            query = require(`./${_RENDERER_CONFIG_OUTPUT_FILE}`);
+            mainConfig = require(`./${_MAIN_CONFIG_OUTPUT_FILE}`);
         } catch (err) {
-            console.log(`W-- URL params file: ${err.message || JSON.stringify(err)}`);
+            console.log(`W-- main config file: ${err.message || JSON.stringify(err)}`);
         }
 
-        createMainWindow(query);
+        let renderConfig;
+        try {
+            renderConfig = require(`./${_RENDER_CONFIG_OUTPUT_FILE}`);
+        } catch (err) {
+            console.log(`W-- render config file: ${err.message || JSON.stringify(err)}`);
+        }
+
+        createMainWindow(mainConfig, renderConfig);
         rendererEvents.connect();
     })
     .on("window-all-closed", () => {
@@ -36,7 +60,7 @@ app
     });
 
 
-function createMainWindow(query) {
+function createMainWindow(mainConfig = {}, renderConfig = {}) {
     const options = {
         autoHideMenuBar: true,
         fullscreenable: true,
@@ -51,19 +75,28 @@ function createMainWindow(query) {
         window = null;
     });
 
-    window.toggleDevTools();
+    if (_args.hasOwnProperty("dev-tools")) {
+        let devTools = true;
+        if (mainConfig.hasOwnProperty("dev-tools") && !mainConfig["dev-tools"]) {
+            devTools = false;
+        }
 
-    let queryString = "";
-    const queryKeys = query ? Object.keys(query) : [];
-    if (0 < queryKeys.length) {
-        queryString = "?" + queryKeys
+        if (devTools) {
+            window.toggleDevTools();
+        }
+    }
+
+    let query = "";
+    const rconfigKeys = Object.keys(renderConfig);
+    if (0 < rconfigKeys.length) {
+        query = "?" + rconfigKeys
             .map(key => {
-                return `${key}=${query[key]}`;
+                return `${key}=${renderConfig[key]}`;
             })
             .join("&");
     }
 
-    const url = `file://${path.join(__dirname, "index.html")}${queryString}`;
+    const url = `file://${path.join(__dirname, "index.html")}${query}`;
     console.log(`d-- loading URL: ${url}`);
     window.loadURL(url);
 }
