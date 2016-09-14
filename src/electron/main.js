@@ -19,7 +19,6 @@ const _RENDER_CONFIG_OUTPUT_FILE = "renderConfig.json";
 process.env.ELECTRON_HIDE_INTERNAL_MODULES = "true";
 
 
-debugger;
 const _args = {};
 process.argv.forEach(arg => {
     if (arg[0] !== "-" || arg.startsWith("--")) {
@@ -76,12 +75,12 @@ function createMainWindow(mainConfig = {}, renderConfig = {}) {
     });
 
     if (_args.hasOwnProperty("dev-tools")) {
-        let devTools = true;
-        if (mainConfig.hasOwnProperty("dev-tools") && !mainConfig["dev-tools"]) {
-            devTools = false;
+        let showDevTools = true;
+        if (mainConfig.hasOwnProperty("devTools") && !mainConfig.devTools) {
+            showDevTools = false;
         }
 
-        if (devTools) {
+        if (showDevTools) {
             window.toggleDevTools();
         }
     }
