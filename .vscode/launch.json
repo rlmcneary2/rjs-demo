@@ -29,7 +29,9 @@
             "request": "launch",
             "program": "${workspaceRoot}/dist/app/main.js",
             "stopOnEntry": true,
-            "args": [],
+            "args": [
+                "-dev-tools"
+            ],
             "cwd": "${workspaceRoot}/dist/app",
             "preLaunchTask": null,
             "runtimeExecutable": "${workspaceRoot}/node_modules/electron-prebuilt/dist/electron.exe",
