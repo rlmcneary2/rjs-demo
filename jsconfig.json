@@ -10,7 +10,8 @@
         "dist",
         "gulpfile.js",
         "locale",
+		"mainConfig.js",
 		"node_modules",
-        "rendererConfig.js"
+        "renderConfig.js"
 	]
 }

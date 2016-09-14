@@ -18,10 +18,12 @@ const _APP_JS_OUTPUT_FILE = "app.js";
 const _DIST_APP_DIR = "app";
 const _DIST_DIR = "dist";
 const _DIST_PACKAGE_DIR = "package";
+const _MAIN_CONFIG_REQUIRE_FILE = "mainConfig.js";
+const _MAIN_CONFIG_OUTPUT_FILE = "mainConfig.json";
+const _RENDER_CONFIG_REQUIRE_FILE = "renderConfig.js";
+const _RENDER_CONFIG_OUTPUT_FILE = "renderConfig.json";
 const _SRC_APP = "src/app";
 const _SRC_ELECTRON = "src/electron";
-const _RENDERER_CONFIG_REQUIRE_FILE = "rendererConfig.js";
-const _RENDERER_CONFIG_OUTPUT_FILE = "rendererConfig.json";
 
 
 let _isProduction = false;
@@ -48,8 +50,11 @@ gulp.task("clean", () => {
     });
 });
 
-gulp.task("create-url-params", () => {
-    return createUrlParams();
+gulp.task("create-config", () => {
+    return Promise.all([
+        createConfig(`./${_MAIN_CONFIG_REQUIRE_FILE}`, _MAIN_CONFIG_OUTPUT_FILE),
+        createConfig(`./${_RENDER_CONFIG_REQUIRE_FILE}`, _RENDER_CONFIG_OUTPUT_FILE),
+    ]);
 });
 
 gulp.task("set-debug", callback => {
@@ -58,7 +63,7 @@ gulp.task("set-debug", callback => {
 });
 
 // All the tasks required by this task must be defined above it.
-gulp.task("debug", gulp.series("set-debug", "create-url-params", gulp.parallel("build-application", "build-electron")), callback => {
+gulp.task("debug", gulp.series("set-debug", "create-config", gulp.parallel("build-application", "build-electron")), callback => {
     callback();
 });
 
@@ -69,7 +74,7 @@ gulp.task("set-release", callback => {
 });
 
 // All the tasks required by this task must be defined above it.
-gulp.task("release", gulp.series("set-release", "clean", "create-url-params", gulp.parallel("build-application", "build-electron")), callback => {
+gulp.task("release", gulp.series("set-release", "clean", "create-config", gulp.parallel("build-application", "build-electron")), callback => {
     callback();
 });
 
@@ -148,15 +153,7 @@ function copyHtml(sourceDir, destinationDir) {
         .pipe(gulp.dest(`${_DIST_DIR}/${destinationDir}/`));
 }
 
-function createDirectory(directoryPath) {
-    return new Promise(resolve => {
-        mkdirp(directoryPath, null, err => {
-            resolve(err);
-        });
-    });
-}
-
-function createUrlParams() {
+function createConfig(sourceJsFilePath, destinationJsonFileName) {
     return new Promise(resolve => {
         let config = {};
         try {
@@ -165,7 +162,7 @@ function createUrlParams() {
             // if true a production build is being compiled, if false it is not
             // a production build. The exported function returns an object
             // whose keys and values will become URL parameters. 
-            const configFunc = require(`./${_RENDERER_CONFIG_REQUIRE_FILE}`);
+            const configFunc = require(sourceJsFilePath);
 
             config = configFunc(_isProduction);
 
@@ -173,21 +170,30 @@ function createUrlParams() {
             createDirectory(destinationDirectory)
                 .then(errDir => {
                     if (errDir) {
-                        console.log(`createUrlParams - error creating directory: ${errDir.message || JSON.stringify(errDir)}`);
+                        console.log(`createConfig - error creating directory: ${errDir.message || JSON.stringify(errDir)}`);
                     }
 
-                    fs.writeFile(`${destinationDirectory}/${_RENDERER_CONFIG_OUTPUT_FILE}`, JSON.stringify(config, null, _isProduction ? 0 : 4), errWrite => {
+                    fs.writeFile(`${destinationDirectory}/${destinationJsonFileName}`, JSON.stringify(config, null, _isProduction ? 0 : 4), errWrite => {
                         if (errWrite) {
-                            console.log(`createUrlParams - error writing file: ${errWrite.message || JSON.stringify(errWrite)}`);
+                            console.log(`createConfig - error writing file: ${errWrite.message || JSON.stringify(errWrite)}`);
                         }
 
                         resolve();
                     });
                 });
         } catch (err) {
-            console.log(`createUrlParams - error: ${err.message || JSON.stringify(err)}`);
+            console.log(`createConfig - error: ${err.message || JSON.stringify(err)}`);
             resolve();
         }
+    });
+}
+
+
+function createDirectory(directoryPath) {
+    return new Promise(resolve => {
+        mkdirp(directoryPath, null, err => {
+            resolve(err);
+        });
     });
 }
 
