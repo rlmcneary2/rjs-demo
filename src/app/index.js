@@ -17,7 +17,7 @@ const url = require("url");
 
 
 const _query = url.parse(window.location.href, true).query;
-const _startupDelayMs = _query["appStartupDelay"] ? _query["appStartupDelay"] : 0;
+const _startupDelayMs = _query["app-startup-delay"] ? _query["app-startup-delay"] : 0;
 
 
 setTimeout(() => {
