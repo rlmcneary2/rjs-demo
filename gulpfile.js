@@ -57,13 +57,17 @@ gulp.task("create-config", () => {
     ]);
 });
 
+gulp.task("create-default-files", () => {
+    return createDefaultFiles();
+});
+
 gulp.task("set-debug", callback => {
     process.env.NODE_ENV = "\"debug\""; // Yes, this must be defined as a string with quotes.
     callback();
 });
 
 // All the tasks required by this task must be defined above it.
-gulp.task("debug", gulp.series("set-debug", "create-config", gulp.parallel("build-application", "build-electron")), callback => {
+gulp.task("debug", gulp.series("set-debug", gulp.parallel("create-config", "create-default-files"), gulp.parallel("build-application", "build-electron")), callback => {
     callback();
 });
 
@@ -74,7 +78,7 @@ gulp.task("set-release", callback => {
 });
 
 // All the tasks required by this task must be defined above it.
-gulp.task("release", gulp.series("set-release", "clean", "create-config", gulp.parallel("build-application", "build-electron")), callback => {
+gulp.task("release", gulp.series("set-release", "clean", gulp.parallel("create-config", "create-default-files"), gulp.parallel("build-application", "build-electron")), callback => {
     callback();
 });
 
@@ -188,6 +192,76 @@ function createConfig(sourceJsFilePath, destinationJsonFileName) {
     });
 }
 
+function createDefaultFiles() {
+    debugger;
+    // Here default files are created if the application developer hasn't already created these files.
+
+    let promises = [
+
+        // Locale data.
+        fileExists("./src/locale/en-US.json")
+            .then(exists => {
+                if (!exists) {
+                    return createJsonFile("./src/locale/en-US.json", {
+                        "hello-world": "Hello React world!"
+                    });
+                }
+            }),
+
+        fileExists("./src/locale/es-ES.json")
+            .then(exists => {
+                if (!exists) {
+                    return createJsonFile("./src/locale/es-ES.json", {
+                        "hello-world": "Hola React mundo!"
+                    });
+                }
+            }),
+
+        // App.jsx
+        fileExists("./src/app/view/App.jsx")
+            .then(exists => {
+                if (!exists) {
+                    return writeTextFile("./src/app/view/App.jsx",
+                        `"use strict";
+
+
+                        const actions = require("../action/actions");
+                        const FormattedMessage = require("react-intl").FormattedMessage;
+                        const React = require("react"); // Invoked after being transpiled to javascript. 
+                        const redux = require("react-redux");
+
+
+                        module.exports = redux.connect(mapStateToProps, mapDispatchToProps)(props => {
+                            return (
+                                <div>
+                                    <FormattedMessage id="hello-world" />
+                                    <button onClick={() => props.changeLocale("en-US") }>en-US</button>
+                                    <button onClick={() => props.changeLocale("es-ES") }>es-ES</button>
+                                </div>
+                            );
+                        });
+
+
+                        function mapDispatchToProps(dispatch) {
+                            return {
+
+                                changeLocale(locale) {
+                                    dispatch(actions.localeChanged(locale));
+                                }
+
+                            };
+                        }
+
+                        function mapStateToProps(/*state*//* The state parameter would normally be converted into props. */) {
+                            return {};
+                        }`
+                    );
+                }
+            })
+    ];
+
+    return Promise.all(promises);
+}
 
 function createDirectory(directoryPath) {
     return new Promise(resolve => {
@@ -195,6 +269,10 @@ function createDirectory(directoryPath) {
             resolve(err);
         });
     });
+}
+
+function createJsonFile(fileName, data) {
+    return writeTextFile(fileName, JSON.stringify(data, null, _isProduction ? 0 : 4));
 }
 
 function electronPackager(options) {
@@ -214,6 +292,26 @@ function electronPackager(options) {
             } else {
                 reject(gutil.PluginError("electron-packager", err));
             }
+        });
+    });
+}
+
+function fileExists(file) {
+    return new Promise(resolve => {
+        fs.stat(file, err => {
+            resolve(!err);
+        });
+    });
+}
+
+function writeTextFile(fileName, data) {
+    return new Promise(resolve => {
+        fs.writeFile(fileName, data, errWrite => {
+            if (errWrite) {
+                console.log(`writeTextFile - error writing file '${fileName}': ${errWrite.message || JSON.stringify(errWrite)}`);
+            }
+
+            resolve();
         });
     });
 }
