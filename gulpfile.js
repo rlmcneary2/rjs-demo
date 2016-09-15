@@ -188,7 +188,9 @@ function createConfig(sourceJsFilePath, destinationJsonFileName) {
 }
 
 function createDefaultFiles() {
-    // Here default files are created if the application developer hasn't already created them.
+    // Here default files are created if the application developer hasn't
+    // already created them. If default files are used - rather than developer
+    // overrides - delete the default files after the build is finished.
     _defaultFilesCopied = [];
 
     let promises = [
