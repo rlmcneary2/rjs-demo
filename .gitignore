@@ -48,9 +48,9 @@ Temporary Items
 !.vscode/launch.json
 !.vscode/settings.json
 dist
-mainConfig.js
+/mainConfig.js
 node_modules
 npm-debug.log
-renderConfig.js
+/renderConfig.js
 src/app/view/App.jsx
 src/locale/**
