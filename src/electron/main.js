@@ -90,12 +90,18 @@ function createRenderQuery() {
     if (0 < rconfigKeys.length) {
         query = "?" + rconfigKeys
             .map(key => {
-                return `${key}=${renderConfig[key]}`;
+                return `${fixedEncodeURIComponent(key)}=${fixedEncodeURIComponent(renderConfig[key])}`;
             })
             .join("&");
     }
 
     return query;
+}
+
+function fixedEncodeURIComponent(value) {
+    return encodeURIComponent(value).replace(/[!'()*]/g, c => {
+        return "%" + c.charCodeAt(0).toString(16);
+    });
 }
 
 function initDevTools(window, mainConfig) {
