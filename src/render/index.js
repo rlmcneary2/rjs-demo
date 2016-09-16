@@ -6,7 +6,7 @@
 
 
 const actions = require("./action/actions");
-const ipc = require("../electron/renderer/ipc");
+const ipc = require("../main/renderer/ipc");
 const React = require("react");
 const ReactContent = require("./view/ReactContent.jsx");
 const ReactDOM = require("react-dom");

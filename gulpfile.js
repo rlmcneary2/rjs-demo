@@ -22,7 +22,7 @@ const _MAIN_CONFIG_OUTPUT_FILE = "mainConfig.json";
 const _RENDER_CONFIG_REQUIRE_FILE = "renderConfig.js";
 const _RENDER_CONFIG_OUTPUT_FILE = "renderConfig.json";
 const _SRC_RENDER = "src/render";
-const _SRC_ELECTRON = "src/electron";
+const _SRC_MAIN = "src/main";
 
 
 let _isProduction = false;
@@ -32,8 +32,8 @@ let _defaultFilesCopied = [];
 gulp.task("build-application", gulp.parallel(buildAppJavascript, () => copyHtml(_SRC_RENDER, _DIST_APP_DIR)));
 
 gulp.task("build-electron", gulp.parallel(
-    () => copyFiles(_SRC_ELECTRON, _DIST_APP_DIR, "js"),
-    () => copyFiles(_SRC_ELECTRON, _DIST_APP_DIR, "json")
+    () => copyFiles(_SRC_MAIN, _DIST_APP_DIR, "js"),
+    () => copyFiles(_SRC_MAIN, _DIST_APP_DIR, "json")
 ));
 
 gulp.task("clean", () => {
