@@ -6,6 +6,7 @@
 
 
 const actions = require("./action/actions");
+const constants = require("../constants");
 const ipc = require("../main/renderer/ipc");
 const React = require("react");
 const ReactContent = require("./view/ReactContent.jsx");
@@ -27,7 +28,7 @@ setTimeout(() => {
     const store = redux.createStore(reducers, thunk);
 
     // Loading language information early is a good idea.
-    store.dispatch(actions.localeChanged(_query["current-locale"]));
+    store.dispatch(actions.localeChanged(_query["current-locale"] || constants.DefaultLocale));
 
     // Use the query to configure the application after updateLocale resolves.
 

@@ -15,47 +15,50 @@ module.exports = {
         localeChanged(locale) {
             return dispatch => {
 
-                // Three things to do here:
-                // - Require the locale-data modules your application requires (see: "Locale Data as Modules" https://github.com/yahoo/react-intl/issues/162)
-                // - Get an object that contains the localized strings. That could be done by requiring the JSON files, downloading them from a server, or reading them from a file using IPC.
-                // - Return the object (messages) from the JSON file that matches the requested locale.
-
-                let language;
+                const allMessages = {};
+                let messages;
                 if (locale) {
-                    language = locale.split(/(-|_)/)[0];
-                }
+                    // Three things to do here:
+                    // - Require the locale-data modules your application requires (see: "Locale Data as Modules" https://github.com/yahoo/react-intl/issues/162)
+                    // - Get an object that contains the localized strings. That could be done by requiring the JSON files, downloading them from a server, or reading them from a file using IPC.
+                    // - Return the object (messages) from the JSON file that matches the requested locale.
 
-                const localeData = {
-                    en: require("react-intl/locale-data/en"),
-                    es: require("react-intl/locale-data/es")
-                    // Require the locale-data modules the application needs (see: "Locale Data as Modules" https://github.com/yahoo/react-intl/issues/162)
-                };
+                    let language;
+                    if (locale) {
+                        language = locale.split(/(-|_)/)[0];
+                    }
 
-                if (language) {
-                    addLocaleData(localeData[language]);
-                }
+                    const localeData = {
+                        en: require("react-intl/locale-data/en"),
+                        es: require("react-intl/locale-data/es")
+                        // Require the locale-data modules the application needs (see: "Locale Data as Modules" https://github.com/yahoo/react-intl/issues/162)
+                    };
 
-                let messages = {
-                    "en-US": require("../../locale/en-US.json"),
-                    "es-ES": require("../../locale/es-ES.json")
+                    if (language) {
+                        addLocaleData(localeData[language]);
+                    }
+
+                    // Get an object that contains the localized strings. That could be done by requiring the JSON files, downloading them from a server, or reading them from a file using IPC.                    
+                    allMessages["en-US"] = require("../../locale/en-US.json");
+                    allMessages["es-ES"] = require("../../locale/es-ES.json");
                     // Require other localized strings the application needs.
-                };
 
-                // Get an object that contains the localized strings. That could be done by requiring the JSON files, downloading them from a server, or reading them from a file using IPC.
-                // Return the object (messages) from the JSON file that matches the requested locale.
+                    // Return the object (messages) from the JSON file that matches the requested locale.
+                    messages = allMessages[locale];
+                }
 
-                dispatch(this.localeChangedEnd(locale, messages[locale]));
+                dispatch(this.localeChangedEnd(locale, messages));
             };
-        },
-
-        localeChangedEnd(locale, messages) {
-            const action = { messages, tag: locale, type: this.types.LocaleChangedEnd };
-
-            if (messages) {
-                action.messages = messages;
-            }
-
-            return action;
         }
+    },
+
+    localeChangedEnd(locale, messages) {
+        const action = { messages, tag: locale, type: this.types.LocaleChangedEnd };
+
+        if (messages) {
+            action.messages = messages;
+        }
+
+        return action;
     }
 };

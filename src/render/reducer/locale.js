@@ -2,6 +2,7 @@
 
 
 const actions = require("../action/actions");
+const constants = require("../../constants");
 
 
 /**
@@ -16,7 +17,7 @@ module.exports = handler;
  * @param {object} state The current local state. Defaults to an object with a tag property set to en-US. 
  * @param {object} action The action with information to process.
  */
-function handler(state = { tag: "en-US" }, action) {
+function handler(state = { tag: constants.DefaultLocale }, action) {
 
     let nextState = state;
     switch (action.type) {
