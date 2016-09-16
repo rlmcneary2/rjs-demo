@@ -21,7 +21,7 @@ const _MAIN_CONFIG_REQUIRE_FILE = "mainConfig.js";
 const _MAIN_CONFIG_OUTPUT_FILE = "mainConfig.json";
 const _RENDER_CONFIG_REQUIRE_FILE = "renderConfig.js";
 const _RENDER_CONFIG_OUTPUT_FILE = "renderConfig.json";
-const _SRC_APP = "src/app";
+const _SRC_RENDER = "src/render";
 const _SRC_ELECTRON = "src/electron";
 
 
@@ -29,7 +29,7 @@ let _isProduction = false;
 let _defaultFilesCopied = [];
 
 
-gulp.task("build-application", gulp.parallel(buildAppJavascript, () => copyHtml(_SRC_APP, _DIST_APP_DIR)));
+gulp.task("build-application", gulp.parallel(buildAppJavascript, () => copyHtml(_SRC_RENDER, _DIST_APP_DIR)));
 
 gulp.task("build-electron", gulp.parallel(
     () => copyFiles(_SRC_ELECTRON, _DIST_APP_DIR, "js"),
@@ -103,7 +103,7 @@ gulp.task("package-release", gulp.series("set-release", "package-task"), callbac
 function buildAppJavascript() {
     return new Promise((resolve, reject) => {
         const config = Object.create(/*webpackConfig*/webpackElectronConfig);
-        config.entry = `./${_SRC_APP}/${_APP_JS_ENTRY_FILE}`;
+        config.entry = `./${_SRC_RENDER}/${_APP_JS_ENTRY_FILE}`;
         config.output = { filename: _APP_JS_OUTPUT_FILE, path: `${_DIST_DIR}/${_DIST_APP_DIR}` };
         config.plugins = config.plugins || [];
         config.plugins.splice(0, 0, new webpack.DefinePlugin({ "process.env": { NODE_ENV: process.env.NODE_ENV } }));
@@ -230,11 +230,11 @@ function createDefaultFiles() {
             }),
 
         // App.jsx
-        fileExists("./src/app/view/App.jsx")
+        fileExists("./src/render/view/App.jsx")
             .then(exists => {
                 if (!exists) {
                     _defaultFilesCopied.push("App.jsx");
-                    return copyFile("./src/example/App.jsx", "./src/app/view/");
+                    return copyFile("./src/example/App.jsx", "./src/render/view/");
                 }
             })
     ];
@@ -271,7 +271,7 @@ function deleteDefaultFiles(force = false) {
     }
 
     if (force || _defaultFilesCopied.includes("App.jsx")) {
-        promises.push(deleteFile("./src/app/view/App.jsx"));
+        promises.push(deleteFile("./src/render/view/App.jsx"));
     }
 
     return Promise.all(promises);
