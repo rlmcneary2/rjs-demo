@@ -200,7 +200,7 @@ function createDefaultFiles() {
             .then(exists => {
                 if (!exists) {
                     _defaultFilesCopied.push("mainConfig.js");
-                    return copyFile("./src/default/mainConfig.js", "./");
+                    return copyFile("./src/example/mainConfig.js", "./");
                 }
             }),
 
@@ -208,7 +208,7 @@ function createDefaultFiles() {
             .then(exists => {
                 if (!exists) {
                     _defaultFilesCopied.push("renderConfig.js");
-                    return copyFile("./src/default/renderConfig.js", "./");
+                    return copyFile("./src/example/renderConfig.js", "./");
                 }
             }),
 
@@ -217,7 +217,7 @@ function createDefaultFiles() {
             .then(exists => {
                 if (!exists) {
                     _defaultFilesCopied.push("en-US.json");
-                    return copyFile("./src/default/en-US.json", "./src/locale/");
+                    return copyFile("./src/example/en-US.json", "./src/locale/");
                 }
             }),
 
@@ -225,7 +225,7 @@ function createDefaultFiles() {
             .then(exists => {
                 if (!exists) {
                     _defaultFilesCopied.push("es-ES.json");
-                    return copyFile("./src/default/es-ES.json", "./src/locale/");
+                    return copyFile("./src/example/es-ES.json", "./src/locale/");
                 }
             }),
 
@@ -234,7 +234,7 @@ function createDefaultFiles() {
             .then(exists => {
                 if (!exists) {
                     _defaultFilesCopied.push("App.jsx");
-                    return copyFile("./src/default/App.jsx", "./src/app/view/");
+                    return copyFile("./src/example/App.jsx", "./src/app/view/");
                 }
             })
     ];
