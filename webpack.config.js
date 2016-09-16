@@ -1,32 +1,37 @@
 "use strict";
 
 
+const path = require("path");
+const webpack = require("webpack");
+
+
 module.exports = {
     module: {
         loaders: [
             {
-                exclude: /(node_modules|bower_components)/,
+                include: [
+                    path.resolve(__dirname, "src/render"),
+                    path.resolve(__dirname, "src/main/renderer/ipc.js")
+                ],
                 loader: "babel",
                 query: {
-                    presets: ["react", "stage-2"],
+                    plugins: ["transform-runtime"],
+                    presets: ["es2015", "stage-0", "react"],
                     retainLines: true,
                 },
-                test: /\.jsx$/
+                test: /\.jsx?$/
             },
             {
-                exclude: /(node_modules|bower_components)/,
-                loader: "babel",
-                query: {
-                    presets: ["stage-2"],
-                    retainLines: true,
-                },
-                test: /\.js$/
-            },
-            {
-                exclude: /(node_modules|bower_components)/,
+                include: [
+                    path.resolve(__dirname, "src/locale"),
+                    path.resolve(__dirname, "src/render")
+                ],
                 loader: "json-loader",
                 test: /\.json$/
             }
         ]
-    }
+    },
+    plugins: [
+        new webpack.optimize.DedupePlugin()
+    ]
 };

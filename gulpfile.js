@@ -83,7 +83,7 @@ gulp.task("set-release", callback => {
 });
 
 // All the tasks required by this task must be defined above it.
-gulp.task("release", gulp.series("set-release", "clean", "create-default-files", "create-config", gulp.parallel("build-application", "build-electron"), () => { return deleteDefaultFiles; }), callback => {
+gulp.task("release", gulp.series("set-release", "clean", "create-default-files", "create-config", gulp.parallel("build-application", "build-electron"), () => { return deleteDefaultFiles(); }), callback => {
     callback();
 });
 
@@ -91,18 +91,26 @@ gulp.task("package-task", () => {
     return electronPackager({ platform: "win32" });
 });
 
-gulp.task("package-debug", gulp.series("set-debug", "package-task"), callback => {
+gulp.task("package-only-debug", gulp.series("set-debug", "package-task"), callback => {
     callback();
 });
 
-gulp.task("package-release", gulp.series("set-release", "package-task"), callback => {
+gulp.task("package-debug", gulp.series("clean", "debug", "package-task"), callback => {
+    callback();
+});
+
+gulp.task("package-only-release", gulp.series("set-release", "package-task"), callback => {
+    callback();
+});
+
+gulp.task("package-release", gulp.series("clean", "release", "package-task"), callback => {
     callback();
 });
 
 
 function buildAppJavascript() {
     return new Promise((resolve, reject) => {
-        const config = Object.create(/*webpackConfig*/webpackElectronConfig);
+        const config = webpackElectronConfig;
         config.entry = `./${_SRC_RENDER}/${_APP_JS_ENTRY_FILE}`;
         config.output = { filename: _APP_JS_OUTPUT_FILE, path: `${_DIST_DIR}/${_DIST_APP_DIR}` };
         config.plugins = config.plugins || [];
@@ -111,6 +119,8 @@ function buildAppJavascript() {
         if (!_isProduction) {
             config.debug = true;
             config.devtool = "source-maps";
+        } else {
+            config.plugins.push(new webpack.optimize.UglifyJsPlugin({ minimize: true }));
         }
 
         webpack(config, (err, stats) => {
