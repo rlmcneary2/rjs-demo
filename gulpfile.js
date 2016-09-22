@@ -1,6 +1,7 @@
 "use strict";
 
 
+const constants = require("./buildConstants");
 const fs = require("fs");
 const gulp = require("gulp");
 const gutil = require("gulp-util");
@@ -12,33 +13,26 @@ const webpack = require("webpack");
 const webpackElectronConfig = require("./webpack-electron.config.js");
 
 
-const _APP_JS_ENTRY_FILE = "index.js";
-const _APP_JS_OUTPUT_FILE = "app.js";
-const _DIST_APP_DIR = "app";
-const _DIST_DIR = "dist";
-const _DIST_PACKAGE_DIR = "package";
 const _MAIN_CONFIG_REQUIRE_FILE = "mainConfig.js";
 const _MAIN_CONFIG_OUTPUT_FILE = "mainConfig.json";
 const _RENDER_CONFIG_REQUIRE_FILE = "renderConfig.js";
 const _RENDER_CONFIG_OUTPUT_FILE = "renderConfig.json";
-const _SRC_RENDER = "src/render";
-const _SRC_MAIN = "src/main";
 
 
 let _isProduction = false;
 let _defaultFilesCopied = [];
 
 
-gulp.task("build-application", gulp.parallel(buildAppJavascript, () => copyHtml(_SRC_RENDER, _DIST_APP_DIR)));
+gulp.task("build-application", gulp.parallel(buildAppJavascript, () => copyHtml(constants.srcRender, constants.distApp)));
 
 gulp.task("build-electron", gulp.parallel(
-    () => copyFiles(_SRC_MAIN, _DIST_APP_DIR, "js"),
-    () => copyFiles(_SRC_MAIN, _DIST_APP_DIR, "json")
+    () => copyFiles(constants.srcMain, constants.distApp, "js"),
+    () => copyFiles(constants.srcMain, constants.distApp, "json")
 ));
 
 gulp.task("clean", () => {
     return new Promise((resolve, reject) => {
-        rimraf(_DIST_DIR, err => {
+        rimraf(constants.dist, err => {
             if (err) {
                 gutil.log("[rimraf]", `error - ${err}`);
                 reject(gutil.PluginError("rimraf", err));
@@ -111,15 +105,17 @@ gulp.task("package-release", gulp.series("clean", "release", "package-task"), ca
 function buildAppJavascript() {
     return new Promise((resolve, reject) => {
         const config = webpackElectronConfig;
-        config.entry = `./${_SRC_RENDER}/${_APP_JS_ENTRY_FILE}`;
-        config.output = { filename: _APP_JS_OUTPUT_FILE, path: `${_DIST_DIR}/${_DIST_APP_DIR}` };
+        // config.entry = `./${constants.srcRender}/${constants.appEntryFile}`;
+        // config.output = { filename: constants.appOutputFile, path: `${constants.dist}/${constants.distApp}` };
         config.plugins = config.plugins || [];
-        config.plugins.splice(0, 0, new webpack.DefinePlugin({ "process.env": { NODE_ENV: process.env.NODE_ENV } }));
+        // config.plugins.splice(0, 0, new webpack.DefinePlugin({ "process.env": { NODE_ENV: process.env.NODE_ENV } }));
 
-        if (!_isProduction) {
-            config.debug = true;
-            config.devtool = "source-maps";
-        } else {
+        if (_isProduction) {
+            if (config.debug) {
+                delete config.debug;
+            }
+
+            config.devtool = "cheap-module-source-maps";
             config.plugins.push(new webpack.optimize.UglifyJsPlugin({ minimize: true }));
         }
 
@@ -154,12 +150,12 @@ function copyFile(sourceFilePath, destinationDir) {
 
 function copyFiles(sourceDir, destinationDir, ext) {
     return gulp.src([`${sourceDir}/*.${ext}`, `${sourceDir}/**/*.${ext}`])
-        .pipe(gulp.dest(`${_DIST_DIR}/${destinationDir}/`));
+        .pipe(gulp.dest(`${constants.dist}/${destinationDir}/`));
 }
 
 function copyHtml(sourceDir, destinationDir) {
     return gulp.src([`${sourceDir}/*.html`, `${sourceDir}/**/*.html`])
-        .pipe(gulp.dest(`${_DIST_DIR}/${destinationDir}/`));
+        .pipe(gulp.dest(`${constants.dist}/${destinationDir}/`));
 }
 
 function createConfig(sourceJsFilePath, destinationJsonFileName) {
@@ -175,7 +171,7 @@ function createConfig(sourceJsFilePath, destinationJsonFileName) {
 
             config = configFunc(_isProduction);
 
-            const destinationDirectory = `${_DIST_DIR}/${_DIST_APP_DIR}`;
+            const destinationDirectory = `${constants.dist}/${constants.distApp}`;
             createDirectory(destinationDirectory)
                 .then(errDir => {
                     if (errDir) {
@@ -311,10 +307,10 @@ function electronPackager(options) {
     return new Promise((resolve, reject) => {
         const packagerOptions = Object.assign({
             asar: _isProduction,
-            dir: `./${_DIST_DIR}/${_DIST_APP_DIR}`,
+            dir: `./${constants.dist}/${constants.distApp}`,
             name: "electron-app",
             arch: "x64",
-            out: `./${_DIST_DIR}/${_DIST_PACKAGE_DIR}/`,
+            out: `./${constants.dist}/${constants.distPackage}/`,
             overwrite: true
         }, options);
 
