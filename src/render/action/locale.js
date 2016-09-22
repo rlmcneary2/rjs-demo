@@ -49,16 +49,16 @@ module.exports = {
 
                 dispatch(this.localeChangedEnd(locale, messages));
             };
+        },
+
+        localeChangedEnd(locale, messages) {
+            const action = { messages, tag: locale, type: this.types.LocaleChangedEnd };
+
+            if (messages) {
+                action.messages = messages;
+            }
+
+            return action;
         }
-    },
-
-    localeChangedEnd(locale, messages) {
-        const action = { messages, tag: locale, type: this.types.LocaleChangedEnd };
-
-        if (messages) {
-            action.messages = messages;
-        }
-
-        return action;
     }
 };
