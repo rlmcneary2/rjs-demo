@@ -50,7 +50,7 @@ Code that is executed in the main process resides in **src/main**. This code is 
 
 The UI is driven by code in the **src/render** directory. There are three places where new code will be added: action, reducer, and view. In **action** the **actions.js** file has hints for where to add your code; the same goes for **reducer/reducers.js**. The actions and reducers are processed by a Redux store, add them as needed. The [redux thunk](https://github.com/gaearon/redux-thunk) middleware is already included so it's possible to create both synchronous and asynchronous actions.
 
-The **view** directory contains presentational and container components. To get Started add an *App.jsx** file and it will become the root of your application components. There is an example App.jsx file in **src/example/App.jsx**.
+The **view** directory contains presentational and container components. To get Started add an **App.jsx** file and it will become the root of your application components. There is an example App.jsx file in **src/example/App.jsx**.
 
 ## Package
 The application can be packaged and run as a native application.
