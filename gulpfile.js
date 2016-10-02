@@ -105,10 +105,7 @@ gulp.task("package-release", gulp.series("clean", "release", "package-task"), ca
 function buildAppJavascript() {
     return new Promise((resolve, reject) => {
         const config = webpackElectronConfig;
-        // config.entry = `./${constants.srcRender}/${constants.appEntryFile}`;
-        // config.output = { filename: constants.appOutputFile, path: `${constants.dist}/${constants.distApp}` };
         config.plugins = config.plugins || [];
-        // config.plugins.splice(0, 0, new webpack.DefinePlugin({ "process.env": { NODE_ENV: process.env.NODE_ENV } }));
 
         if (_isProduction) {
             if (config.debug) {
