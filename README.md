@@ -1,5 +1,5 @@
 # electron-app
-A starter project to create a basic [Electron](http://electron.atom.io/) application using [React](https://facebook.github.io/react/), [Redux](http://redux.js.org/), and [webpack](https://webpack.github.io/). Electron applications are cross platform applications that run on Windows, OSX, and Linux.
+A starter project to create a basic [Electron](http://electron.atom.io/) application using [React](https://facebook.github.io/react/), [Redux](http://redux.js.org/), [React-Intl](https://github.com/yahoo/react-intl), and [Webpack](https://webpack.github.io/). Electron applications are cross platform applications that run on Windows, OSX, and Linux.
 
 ## Prerequisites
 - [Node.js](https://nodejs.org) version 6 or later.
