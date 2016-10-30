@@ -5,10 +5,10 @@ A starter project to create a basic [Electron](http://electron.atom.io/) applica
 - [Node.js](https://nodejs.org) version 6 or later.
 
 ## Get the source code
-Clone this repository using git. The source files will be copied into a subdirectory named **electron-app** of the current working directory. Once all the files are downloaded move into the **electron-app** directory
+Clone this repository using git. The source files will be copied into a subdirectory, with the name you specify, that is a child of the current working directory. Once all the files are downloaded change into the new child directory
 ```
-git clone -b master --single-branch -o electron-app https://github.com/rlmcneary2/electron-app.git
-cd electron-app
+git clone -b master --single-branch -o electron-app https://github.com/rlmcneary2/electron-app.git <replace with your directory name>
+cd <replace with your directory name>
 ```
 
 ## Install required packages
