@@ -68,7 +68,7 @@ TBD
 TBD
 
 ## Updating
-Once the repository has been cloned or forked you can update to the latest version by executing the following commands in the **electron-app** directory.
+Once the repository has been cloned or forked you can update to the latest version by executing the following commands in the application directory (as created in *Get the source code* above).
 ```
 git checkout master
 git fetch electron-app
