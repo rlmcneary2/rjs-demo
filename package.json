@@ -1,6 +1,6 @@
 {
   "name": "electron-app",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "description": "A basic Electron application using React, Redux, React-Intl, and Webpack.",
   "main": "index.js",
   "scripts": {
@@ -8,7 +8,8 @@
     "clean:default:files": "gulp clean-default-files",
     "debug": "gulp debug",
     "package:debug": "gulp package-debug",
-    "package:release": "gulp package-release",
+    "package:release:linux": "gulp package-release --platform=linux",
+    "package:release:win32": "gulp package-release --platform=win32",
     "prebuilt": "electron ./dist/app/ -devtools",
     "release": "gulp release"
   },
