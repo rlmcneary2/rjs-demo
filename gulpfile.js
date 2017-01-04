@@ -19,6 +19,7 @@ const _RENDER_CONFIG_REQUIRE_FILE = "renderConfig.js";
 const _RENDER_CONFIG_OUTPUT_FILE = "renderConfig.json";
 
 
+let _electronPackagerOptions;
 let _isProduction = false;
 
 
@@ -81,7 +82,11 @@ gulp.task("release", gulp.series("set-release", "clean", "create-default-files",
 });
 
 gulp.task("package-task", () => {
-    return electronPackager({ platform: "win32" });
+    const options = Object.assign({
+        arch: "x64"
+    }, _electronPackagerOptions);
+
+    return electronPackager(options);
 });
 
 gulp.task("package-only-debug", gulp.series("set-debug", "package-task"), callback => {
@@ -96,7 +101,7 @@ gulp.task("package-only-release", gulp.series("set-release", "package-task"), ca
     callback();
 });
 
-gulp.task("package-release", gulp.series("clean", "release", "package-task"), callback => {
+gulp.task("package-release", gulp.series("clean", "release", callback => { _electronPackagerOptions = { platform: gutil.env.platform }; callback(); }, "package-task"), callback => {
     callback();
 });
 
@@ -198,7 +203,7 @@ function createConfig(sourceJsFilePath, destinationJsonFileName) {
 function createDefaultFiles() {
     // Check for default files and replace them if they are a default.
     const creator = name => {
-        isDefaultFile(name)
+        return isDefaultFile(name)
             .then(isDefault => {
                 if (!isDefault) {
                     return;
@@ -307,7 +312,7 @@ function electronPackager(options) {
             if (!err) {
                 resolve();
             } else {
-                reject(gutil.PluginError("electron-packager", err));
+                reject(new gutil.PluginError("electron-packager", err));
             }
         });
     });
