@@ -129,29 +129,33 @@ function buildAppJavascript() {
 }
 
 function copyFile(sourceFilePath, destinationDir) {
-    return new Promise((resolve, reject) => {
-        const destinationFilePath = path.join(destinationDir, path.basename(sourceFilePath));
-        const outStream = fs.createWriteStream(destinationFilePath);
-        outStream.on("close", () => {
-            // Copy file times.
-            fs.stat(sourceFilePath, (err, stats) => {
-                fs.utimes(destinationFilePath, stats.atime, stats.mtime, err => {
-                    if (err) {
-                        reject(err);
-                        return;
-                    }
+    // Create the destination directory if it doesn't exist.
+    return createDirectory(destinationDir)
+        .then(() => {
+            return new Promise((resolve, reject) => {
+                const destinationFilePath = path.join(destinationDir, path.basename(sourceFilePath));
+                const outStream = fs.createWriteStream(destinationFilePath);
+                outStream.on("close", () => {
+                    // Copy file times.
+                    fs.stat(sourceFilePath, (err, stats) => {
+                        fs.utimes(destinationFilePath, stats.atime, stats.mtime, err => {
+                            if (err) {
+                                reject(err);
+                                return;
+                            }
 
-                    resolve(true);
+                            resolve(true);
+                        });
+                    });
                 });
+                outStream.on("error", err => {
+                    console.log(`copyFile - error writing from '${sourceFilePath}' to '${destinationFilePath}': ${err.message || JSON.stringify(err)}`); // eslint-disable-line no-console
+                });
+
+                fs.createReadStream(sourceFilePath)
+                    .pipe(outStream);
             });
         });
-        outStream.on("error", err => {
-            console.log(`copyFile - error writing from '${sourceFilePath}' to '${destinationFilePath}': ${err.message || JSON.stringify(err)}`); // eslint-disable-line no-console
-        });
-
-        fs.createReadStream(sourceFilePath)
-            .pipe(outStream);
-    });
 }
 
 function copyFiles(sourceDir, destinationDir, ext) {
@@ -175,7 +179,7 @@ function createConfig(sourceJsFilePath, destinationJsonFileName) {
             // whose keys and values will become URL parameters. 
             const configFunc = require(sourceJsFilePath);
 
-            config = configFunc(_isProduction);
+            config = typeof configFunc === "function" ? configFunc(_isProduction) : configFunc;
 
             writeFile(`${constants.dist}/${constants.distApp}/${destinationJsonFileName}`, JSON.stringify(config, null, _isProduction ? 0 : 4))
                 .then(() => {
