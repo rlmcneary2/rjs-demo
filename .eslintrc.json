@@ -34,10 +34,10 @@
             2,
             "double"
         ],
-        "linebreak-style": [
-            2,
-            "windows"
-        ],
+        // "linebreak-style": [
+        //     2,
+        //     "windows"
+        // ],
         "semi": [
             2,
             "always"
