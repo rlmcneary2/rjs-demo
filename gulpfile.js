@@ -10,7 +10,7 @@ const packager = require("electron-packager");
 const path = require("path");
 const rimraf = require("rimraf");
 const webpack = require("webpack");
-const webpackElectronConfig = require("./webpack-electron.config.js");
+const webpackConfig = require("./webpack.config.js");
 
 
 const _MAIN_CONFIG_REQUIRE_FILE = "mainConfig.js";
@@ -108,7 +108,7 @@ gulp.task("package-release", gulp.series("clean", "release", callback => { _elec
 
 function buildAppJavascript() {
     return new Promise((resolve, reject) => {
-        const config = webpackElectronConfig;
+        const config = webpackConfig;
         config.plugins = config.plugins || [];
 
         if (_isProduction) {

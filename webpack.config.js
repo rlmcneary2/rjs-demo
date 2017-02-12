@@ -7,20 +7,18 @@ const webpack = require("webpack");
 
 
 module.exports = {
-    debug: true,
     devtool: "source-maps",
     entry: `.${path.sep}${path.join(constants.srcRender, constants.appEntryFile)}`,
     module: {
         loaders: [
             {
                 include: [
-                    path.resolve(__dirname, constants.srcRender),
-                    path.resolve(__dirname, path.join(constants.srcMain, "renderer/ipc.js"))
+                    path.resolve(__dirname, constants.srcRender)
                 ],
-                loader: "babel",
+                loader: "babel-loader",
                 query: {
-                    plugins: ["transform-runtime"],
-                    presets: ["es2015", "stage-0", "react"],
+                    plugins: ["transform-async-to-generator"], // Only necessary until Electron + Chrome supports async / await (any day now).
+                    presets: ["react"],
                     retainLines: true,
                 },
                 test: /\.jsx?$/
@@ -40,7 +38,7 @@ module.exports = {
         path: path.join(constants.dist, constants.distApp),
     },
     plugins: [
-        new webpack.DefinePlugin({ "process.env": { NODE_ENV: process.env.NODE_ENV } }),
-        new webpack.optimize.DedupePlugin()
-    ]
+        new webpack.DefinePlugin({ "process.env": { NODE_ENV: process.env.NODE_ENV } })
+    ],
+    target: "electron-renderer"
 };
