@@ -112,12 +112,10 @@ function buildAppJavascript() {
         config.plugins = config.plugins || [];
 
         if (_isProduction) {
-            if (config.debug) {
-                delete config.debug;
-            }
-
             config.devtool = "cheap-module-source-maps";
             config.plugins.push(new webpack.optimize.UglifyJsPlugin({ minimize: true }));
+        } else {
+            config.plugins.push(new webpack.LoaderOptionsPlugin({ debug: true }));
         }
 
         webpack(config, (err, stats) => {
