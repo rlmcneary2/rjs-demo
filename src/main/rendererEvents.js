@@ -32,15 +32,16 @@ module.exports = {
 
 // DEMO
 function getFlickrImage(evt, args) {
-    request.get("https://api.flickr.com/services/rest/?method=flickr.interestingness.getList&api_key=f17639e3d18eca2dea2f321aaf3e2e84&format=json&nojsoncallback=1", (err, response, body) => {
-        const obj = JSON.parse(body);
-        const min = Math.ceil(0);
-        const max = Math.floor(obj.photos.perpage);
-        const index = Math.floor(Math.random() * (max - min + 1)) + min;
-
-        const photo = obj.photos.photo[index];
-        evt.sender.send(ipcShared.asyncResponseChannelName, Object.assign({ photo }, args));
-    });
+    getInterestingPhoto()
+        .then(info => {
+            return getPhotoSizes(info.id);
+        })
+        .then(size => {
+            // Download the image to a file.
+        })
+        .then(() => {
+            evt.sender.send(ipcShared.asyncResponseChannelName, Object.assign({ photo: result }, args));
+        });
 }
 
 // function readTextFile(evt, args) {
@@ -70,3 +71,25 @@ function getFlickrImage(evt, args) {
 //             evt.sender.send(ipcShared.asyncResponseChannelName, Object.assign({ error: err }, args));
 //         });
 // }
+
+function getInterestingPhoto() {
+    return new Promise(resolve => {
+        request.get("https://api.flickr.com/services/rest/?method=flickr.interestingness.getList&api_key=f17639e3d18eca2dea2f321aaf3e2e84&format=json&nojsoncallback=1", (err, response, body) => {
+            const obj = JSON.parse(body);
+            const min = Math.ceil(0);
+            const max = Math.floor(obj.photos.perpage);
+            const index = Math.floor(Math.random() * (max - min + 1)) + min;
+
+            resolve(obj.photos.photo[index]);
+        });
+    });
+}
+
+function getPhotoSizes(id) {
+    return new Promise(resolve => {
+        request.get(`https://api.flickr.com/services/rest/?method=flickr.photos.getSizes&api_key=f17639e3d18eca2dea2f321aaf3e2e84&photo_id=${id}&format=json&nojsoncallback=1`, (err, response, body) => {
+            const obj = JSON.parse(body);
+            resolve(obj.sizes.size[obj.sizes.size.length - 1]);
+        });
+    });
+}
