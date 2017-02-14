@@ -28,8 +28,8 @@
             "type": "node",
             "request": "launch",
             "program": "${workspaceRoot}/dist/app/main.js",
-            "stopOnEntry": true,
             "args": [
+                "-app-startup-delay=500",
                 "-dev-tools"
             ],
             "cwd": "${workspaceRoot}/dist/app",

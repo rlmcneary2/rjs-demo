@@ -7,7 +7,6 @@
 
 const actions = require("./action/actions");
 const constants = require("../constants");
-const ipc = require("../main/renderer/ipc");
 const React = require("react");
 const ReactContent = require("./view/ReactContent.jsx");
 const ReactDOM = require("react-dom");
@@ -22,8 +21,6 @@ const _startupDelayMs = _query["app-startup-delay"] ? _query["app-startup-delay"
 
 
 setTimeout(() => {
-    ipc.log("index.js - started.", "iii");
-
     const thunk = redux.applyMiddleware(reduxThunk);
     const store = redux.createStore(reducers, thunk);
 

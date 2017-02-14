@@ -12,48 +12,51 @@ let _requestId = 0;
 
 module.exports = {
 
-    log: (message, messageType = "   ") => {
-        const r = createRequest("log", { message, type: messageType });
-        sendRequest(r);
-    },
-
-    readTextFile: (name, callback) => {
-        const request = createRequest("read-text-file", { name });
-
-        const chunks = [];
+    getFlickrImage() {
         return new Promise((resolve, reject) => {
-            // This function will be passed to the request and used to
-            // resolve the request when the entire file has been read.
-            const resolver = () => {
-                // If the caller of readTextFile provided a callback that means
-                // as chunks were read they were passed back to the caller, all
-                // we need to do in this case is resolve.
-                if (callback) {
-                    resolve();
-                } else {
-                    // No callback was provided, resolve and return the entire
-                    // file at once.
-                    resolve(chunks.join(""));
-                }
-            };
-
-            const callbacker = args => {
-                if (callback) {
-                    callback(args.chunk);
-                } else {
-                    chunks.push(args.chunk);
-                }
-
-                // Return false when all the file contents have been read (i.e.
-                // args does not have a chunk property).
-                return !args.chunk;
-            };
-
-            _requests.set(request.id, { resolve: resolver, reject, callback: callbacker });
+            const request = createRequest("getFlickrImage");
+            _requests.set(request.id, { resolve, reject });
             sendRequest(request);
         });
+    },
 
-    }
+    // readTextFile: (name, callback) => {
+    //     const request = createRequest("read-text-file", { name });
+
+    //     const chunks = [];
+    //     return new Promise((resolve, reject) => {
+    //         // This function will be passed to the request and used to
+    //         // resolve the request when the entire file has been read.
+    //         const resolver = () => {
+    //             // If the caller of readTextFile provided a callback that means
+    //             // as chunks were read they were passed back to the caller, all
+    //             // we need to do in this case is resolve.
+    //             if (callback) {
+    //                 resolve();
+    //             } else {
+    //                 // No callback was provided, resolve and return the entire
+    //                 // file at once.
+    //                 resolve(chunks.join(""));
+    //             }
+    //         };
+
+    //         const callbacker = args => {
+    //             if (callback) {
+    //                 callback(args.chunk);
+    //             } else {
+    //                 chunks.push(args.chunk);
+    //             }
+
+    //             // Return false when all the file contents have been read (i.e.
+    //             // args does not have a chunk property).
+    //             return !args.chunk;
+    //         };
+
+    //         _requests.set(request.id, { resolve: resolver, reject, callback: callbacker });
+    //         sendRequest(request);
+    //     });
+
+    // }
 
 };
 

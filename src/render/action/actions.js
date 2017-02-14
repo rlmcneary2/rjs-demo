@@ -1,6 +1,7 @@
 "use strict";
 
 
+const image = require("./image");
 const locale = require("./locale");
 
 
@@ -8,11 +9,13 @@ const locale = require("./locale");
 module.exports = Object.assign({
 
     types: Object.freeze(Object.assign({},
+        image.types,
         locale.types
         // Add additional action type definitions here.
     )),
 
 },
+    image.actions,
     locale.actions
     // Add additional actions here.
 );
