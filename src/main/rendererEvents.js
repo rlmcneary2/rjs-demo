@@ -5,7 +5,7 @@ const fs = require("fs");
 const ipc = require("electron").ipcMain;
 const ipcShared = require("./ipcShared");
 const request = require("request");
-
+const tmp = require("tmp");
 
 module.exports = {
 
@@ -34,43 +34,72 @@ module.exports = {
 function getFlickrImage(evt, args) {
     getInterestingPhoto()
         .then(info => {
-            return getPhotoSizes(info.id);
-        })
-        .then(size => {
-            // Download the image to a file.
-        })
-        .then(() => {
-            evt.sender.send(ipcShared.asyncResponseChannelName, Object.assign({ photo: result }, args));
+            return getPhotoSizes(info.id)
+                .then(sizes => {
+                    // Download the thumbnail image.
+                    downloadImage(sizes[0].source, (chunk, fileSize) => {
+                        // TODO: return image data to renderer for display.
+                    });
+
+                    // Download the large image to a file.
+                    return downloadImage(sizes[1].source);
+                })
+                .then(({path}) => {
+                    evt.sender.send(ipcShared.asyncResponseChannelName, Object.assign({ path, photo: info }, args));
+                });
         });
 }
 
-// function readTextFile(evt, args) {
-//     // args = { data:{ name:"file.name" }, id:1, type:"read-file" }
+function createTempFile() {
+    return new Promise(resolve => {
+        tmp.file({ mode: 0o666, postfix: ".jpg", prefix: "RJS-" }, (err, path, fd) => {
+            resolve({ fd, path });
+        });
+    });
+}
 
-//     return new Promise((resolve, reject) => {
-//         if (!args || !args.data || !args.data.name) {
-//             throw "No file name to read.";
-//         }
+function downloadImage(url, callback) {
+    return new Promise(resolve => {
+        let p = {};
+        if (!callback) {
+            p = createTempFile();
+        }
 
-//         const name = args.data.name;
-//         fs.createReadStream(name, { encoding: "utf-8" })
-//             .on("data", (chunk) => {
-//                 evt.sender.send(ipcShared.asyncResponseChannelName, { id: args.id, chunk });
-//             })
-//             .on("end", () => {
-//                 resolve();
-//             })
-//             .on("error", (err) => {
-//                 reject(err);
-//             });
-//     })
-//         .then(() => {
-//             evt.sender.send(ipcShared.asyncResponseChannelName, Object.assign({}, args));
-//         })
-//         .catch(err => {
-//             evt.sender.send(ipcShared.asyncResponseChannelName, Object.assign({ error: err }, args));
-//         });
-// }
+        Promise.resolve(p)
+            .then(({fd, path}) => {
+                let total = 0;
+                let fileSize;
+                let response;
+                const req = request.get(url);
+                req
+                    .on("response", r => {
+                        response = r;
+                        if (response.headers.hasOwnProperty("content-length")) {
+                            fileSize = response.headers["content-length"];
+                        }
+                    })
+                    .on("data", chunk => {
+                        total += chunk.byteLength;
+                        console.log(`Ddownloaded: ${total} / ${fileSize}`);
+
+                        if (callback) {
+                            callback(chunk, fileSize);
+                        }
+                    })
+                    .on("end", () => {
+                        if (path) {
+                            console.log(`File downloaded to '${path}'.`);
+                        }
+
+                        resolve({ path, response });
+                    });
+
+                if (!callback) {
+                    req.pipe(fs.createWriteStream(null, { fd }));
+                }
+            });
+    });
+}
 
 function getInterestingPhoto() {
     return new Promise(resolve => {
@@ -89,7 +118,19 @@ function getPhotoSizes(id) {
     return new Promise(resolve => {
         request.get(`https://api.flickr.com/services/rest/?method=flickr.photos.getSizes&api_key=f17639e3d18eca2dea2f321aaf3e2e84&photo_id=${id}&format=json&nojsoncallback=1`, (err, response, body) => {
             const obj = JSON.parse(body);
-            resolve(obj.sizes.size[obj.sizes.size.length - 1]);
+            let label;
+            let thumb;
+            let large;
+            for (let i = 0; i < obj.sizes.size.length; i++) {
+                label = obj.sizes.size[i].label;
+                if (label === "Small 320") {
+                    thumb = obj.sizes.size[i];
+                } else if (i + 1 === obj.sizes.size.length) {
+                    large = obj.sizes.size[i];
+                }
+            }
+
+            resolve([thumb, large]);
         });
     });
 }
