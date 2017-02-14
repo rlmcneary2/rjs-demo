@@ -21,7 +21,6 @@ module.exports = {
 
                 ipc.getFlickrImage()
                     .then(result => {
-                        debugger;
                         dispatch(self.getFlickrImageEnd(result));
                     });
             };
