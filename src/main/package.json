@@ -32,6 +32,7 @@
     },
     "linux": {
       "comment": "A basic Electron application using React, Redux, and Webpack.",
+      "desktopName": "/usr/share/applications/rjs-demo.desktop",
       "publisher": "Richard L. McNeary II",
       "title": "rjs-demo",
       "verbosity": 1,
