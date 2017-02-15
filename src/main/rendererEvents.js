@@ -14,13 +14,14 @@ const tmp = require("tmp");
 
 
 const _API_KEY = "38e86e7b27983abbd2d41ddf5f47b9c6";
+let _progressCallback;
 
 
 module.exports = {
 
     asyncRequestChannelName: "async-renderer-event",
 
-    connect: () => {
+    connect () {
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 // Set a handler for requests from renderer.
 // args is a copy of the request object sent by renderer. 
@@ -37,6 +38,10 @@ module.exports = {
                     break;
             }
         });
+    },
+
+    setProgressCallback(callback) {
+        _progressCallback = callback;
     }
 
 };
@@ -61,6 +66,7 @@ function getFlickrImage(evt, args) {
                     }, false);
 
                     // Download the large image to a file.
+                    let chunkSizeTotal = 0;
                     return downloadImage(sizes[1].source, (data) => {
                         const d = {
                             chunkSize: data.chunk.byteLength,
@@ -68,6 +74,11 @@ function getFlickrImage(evt, args) {
                             id: args.id,
                             path: data.path
                         };
+
+                        if (_progressCallback) {
+                            chunkSizeTotal += d.chunkSize;
+                            _progressCallback(chunkSizeTotal, d.fileSize);
+                        }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 // Send download progress to renderer.

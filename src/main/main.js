@@ -45,8 +45,18 @@ app
             mainConfig = {};
         }
 
-        createMainWindow(mainConfig);
+        const w = createMainWindow(mainConfig);
+
         rendererEvents.connect();
+        rendererEvents.setProgressCallback((progress, total) => {
+            if (progress === total) {
+                setTimeout(() => {
+                    w.setProgressBar(-1);
+                }, 200);
+            }
+
+            w.setProgressBar(progress / total);
+        });
     })
     .on("window-all-closed", () => {
         app.quit();
@@ -74,6 +84,8 @@ function createMainWindow(mainConfig) {
     const url = `file://${path.join(__dirname, "index.html")}${query}`;
     console.log(`d-- loading URL: ${url}`);
     window.loadURL(url);
+
+    return window;
 }
 
 function createRenderQuery() {
