@@ -1,6 +1,11 @@
 "use strict";
 
 
+/**
+ * This module runs in renderer (browser).
+ */
+
+
 const ipcRenderer = require("electron").ipcRenderer;
 const ipcShared = require("../ipcShared");
 
@@ -12,52 +17,31 @@ let _requestId = 0;
 
 module.exports = {
 
-    getFlickrImage() {
+    getFlickrImage(callback) {
         return new Promise((resolve, reject) => {
+            let totalChunkSize = 0;
+            const requestCallback = args => {
+                if (callback) {
+                    callback(args);
+                }
+
+                if (args.chunkSize) {
+                    totalChunkSize += args.chunkSize;
+                }
+
+                return totalChunkSize === args.fileSize;
+            };
+
+            const resolver = args => {
+                console.log(`getFlickrImage resolved: ${args}`);
+                resolve();
+            };
+
             const request = createRequest("getFlickrImage");
-            _requests.set(request.id, { resolve, reject });
+            _requests.set(request.id, { resolve: resolver, reject, callback: requestCallback });
             sendRequest(request);
         });
-    },
-
-    // readTextFile: (name, callback) => {
-    //     const request = createRequest("read-text-file", { name });
-
-    //     const chunks = [];
-    //     return new Promise((resolve, reject) => {
-    //         // This function will be passed to the request and used to
-    //         // resolve the request when the entire file has been read.
-    //         const resolver = () => {
-    //             // If the caller of readTextFile provided a callback that means
-    //             // as chunks were read they were passed back to the caller, all
-    //             // we need to do in this case is resolve.
-    //             if (callback) {
-    //                 resolve();
-    //             } else {
-    //                 // No callback was provided, resolve and return the entire
-    //                 // file at once.
-    //                 resolve(chunks.join(""));
-    //             }
-    //         };
-
-    //         const callbacker = args => {
-    //             if (callback) {
-    //                 callback(args.chunk);
-    //             } else {
-    //                 chunks.push(args.chunk);
-    //             }
-
-    //             // Return false when all the file contents have been read (i.e.
-    //             // args does not have a chunk property).
-    //             return !args.chunk;
-    //         };
-
-    //         _requests.set(request.id, { resolve: resolver, reject, callback: callbacker });
-    //         sendRequest(request);
-    //     });
-
-    // }
-
+    }
 };
 
 
@@ -100,8 +84,16 @@ function onAsyncResponse(evt, args) {
 function sendRequest(request) {
     if (!_asyncResponseConnected) {
         _asyncResponseConnected = true;
+
+///////////////////////////////////////////////////////////////////////////////////////////////////
+// Set a handler for responses from main. The handler has two parameters - evt and args.
+// args is a copy of the object sent from main.
+///////////////////////////////////////////////////////////////////////////////////////////////////
         ipcRenderer.on("async-event-response", onAsyncResponse);
     }
 
+///////////////////////////////////////////////////////////////////////////////////////////////////
+// The request is sent to main.
+///////////////////////////////////////////////////////////////////////////////////////////////////
     ipcRenderer.send(ipcShared.asyncRequestChannelName, request);
 }

@@ -8,17 +8,16 @@ const redux = require("react-redux");
 
 
 module.exports = redux.connect(mapStateToProps, mapDispatchToProps)(props => {
-    /*return (
-        <div>
-            <FormattedMessage id="hello-world" />
-            <button onClick={() => props.changeLocale("en-US") }>en-US</button>
-            <button onClick={() => props.changeLocale("es-ES") }>es-ES</button>
-        </div>
-    );*/
+    const name = props.fileName || null;
+    const progress = props.progress ? (<p>{Math.trunc((props.progress / props.total) * 100) + "%"}</p>) : null;
+    const image = props.url ? (<img src={props.url} />) : null;
 
     return (
         <div>
             <button onClick={() => props.getFlickrImage()}>Get Image</button>
+            {name}
+            {progress}
+            {image}
         </div>
     );
 });
@@ -38,6 +37,6 @@ function mapDispatchToProps(dispatch) {
     };
 }
 
-function mapStateToProps(/*state*//* The state parameter would normally be converted into props. */) {
-    return {};
+function mapStateToProps(state) {
+    return state.image;
 }

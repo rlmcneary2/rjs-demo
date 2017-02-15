@@ -1,20 +1,32 @@
 "use strict";
 
 
+/**
+ * This module runs in main (node).
+ */
+
+
 const fs = require("fs");
-const ipc = require("electron").ipcMain;
+const ipcMain = require("electron").ipcMain;
 const ipcShared = require("./ipcShared");
 const request = require("request");
 const tmp = require("tmp");
+
+
+const _API_KEY = "38e86e7b27983abbd2d41ddf5f47b9c6";
+
 
 module.exports = {
 
     asyncRequestChannelName: "async-renderer-event",
 
     connect: () => {
-        ipc.on(ipcShared.asyncRequestChannelName, (evt, args) => {
+///////////////////////////////////////////////////////////////////////////////////////////////////
+// Set a handler for requests from renderer.
+// args is a copy of the request object sent by renderer. 
+///////////////////////////////////////////////////////////////////////////////////////////////////
+        ipcMain.on(ipcShared.asyncRequestChannelName, (evt, args) => {
             switch (args.type) {
-                // DEMO
                 case "getFlickrImage": {
                     getFlickrImage(evt, args);
                     break;
@@ -29,20 +41,40 @@ module.exports = {
 
 };
 
-
-// DEMO
+///////////////////////////////////////////////////////////////////////////////////////////////////
+// Image data is downloaded. The thumbnail image is transferred back to the renderer process.
+// The large image is saved to a temporary file.
+///////////////////////////////////////////////////////////////////////////////////////////////////
 function getFlickrImage(evt, args) {
     getInterestingPhoto()
         .then(info => {
             return getPhotoSizes(info.id)
                 .then(sizes => {
                     // Download the thumbnail image.
-                    downloadImage(sizes[0].source, (chunk, fileSize) => {
-                        // TODO: return image data to renderer for display.
-                    });
+                    downloadImage(sizes[0].source, (data) => {
+
+///////////////////////////////////////////////////////////////////////////////////////////////////
+// Send the thumbnail image data to renderer.
+///////////////////////////////////////////////////////////////////////////////////////////////////
+                        evt.sender.send(ipcShared.asyncResponseChannelName, Object.assign({ id: args.id }, data));
+
+                    }, false);
 
                     // Download the large image to a file.
-                    return downloadImage(sizes[1].source);
+                    return downloadImage(sizes[1].source, (data) => {
+                        const d = {
+                            chunkSize: data.chunk.byteLength,
+                            fileSize: data.fileSize,
+                            id: args.id,
+                            path: data.path
+                        };
+
+///////////////////////////////////////////////////////////////////////////////////////////////////
+// Send download progress to renderer.
+///////////////////////////////////////////////////////////////////////////////////////////////////
+                        evt.sender.send(ipcShared.asyncResponseChannelName, d);
+
+                    });
                 })
                 .then(({path}) => {
                     evt.sender.send(ipcShared.asyncResponseChannelName, Object.assign({ path, photo: info }, args));
@@ -58,32 +90,33 @@ function createTempFile() {
     });
 }
 
-function downloadImage(url, callback) {
+function downloadImage(url, callback, saveToFile = true) {
     return new Promise(resolve => {
         let p = {};
-        if (!callback) {
+        if (saveToFile) {
             p = createTempFile();
         }
 
         Promise.resolve(p)
             .then(({fd, path}) => {
-                let total = 0;
                 let fileSize;
+                let mimeType;
                 let response;
                 const req = request.get(url);
                 req
                     .on("response", r => {
                         response = r;
                         if (response.headers.hasOwnProperty("content-length")) {
-                            fileSize = response.headers["content-length"];
+                            fileSize = parseInt(response.headers["content-length"]);
+                        }
+
+                        if (response.headers.hasOwnProperty("content-type")) {
+                            mimeType = parseInt(response.headers["content-type"]);
                         }
                     })
                     .on("data", chunk => {
-                        total += chunk.byteLength;
-                        console.log(`Ddownloaded: ${total} / ${fileSize}`);
-
                         if (callback) {
-                            callback(chunk, fileSize);
+                            callback({chunk, fileSize, mimeType, path});
                         }
                     })
                     .on("end", () => {
@@ -94,7 +127,7 @@ function downloadImage(url, callback) {
                         resolve({ path, response });
                     });
 
-                if (!callback) {
+                if (saveToFile) {
                     req.pipe(fs.createWriteStream(null, { fd }));
                 }
             });
@@ -103,7 +136,7 @@ function downloadImage(url, callback) {
 
 function getInterestingPhoto() {
     return new Promise(resolve => {
-        request.get("https://api.flickr.com/services/rest/?method=flickr.interestingness.getList&api_key=f17639e3d18eca2dea2f321aaf3e2e84&format=json&nojsoncallback=1", (err, response, body) => {
+        request.get(`https://api.flickr.com/services/rest/?method=flickr.interestingness.getList&api_key=${_API_KEY}&format=json&nojsoncallback=1`, (err, response, body) => {
             const obj = JSON.parse(body);
             const min = Math.ceil(0);
             const max = Math.floor(obj.photos.perpage);
@@ -116,7 +149,7 @@ function getInterestingPhoto() {
 
 function getPhotoSizes(id) {
     return new Promise(resolve => {
-        request.get(`https://api.flickr.com/services/rest/?method=flickr.photos.getSizes&api_key=f17639e3d18eca2dea2f321aaf3e2e84&photo_id=${id}&format=json&nojsoncallback=1`, (err, response, body) => {
+        request.get(`https://api.flickr.com/services/rest/?method=flickr.photos.getSizes&api_key=${_API_KEY}&photo_id=${id}&format=json&nojsoncallback=1`, (err, response, body) => {
             const obj = JSON.parse(body);
             let label;
             let thumb;
@@ -126,7 +159,8 @@ function getPhotoSizes(id) {
                 if (label === "Small 320") {
                     thumb = obj.sizes.size[i];
                 } else if (i + 1 === obj.sizes.size.length) {
-                    large = obj.sizes.size[i];
+                    const largeIndex = obj.sizes.size[i].label === "Original" ? i - 1 : i;
+                    large = obj.sizes.size[largeIndex];
                 }
             }
 
