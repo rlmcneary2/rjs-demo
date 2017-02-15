@@ -9,6 +9,7 @@ const mkdirp = require("mkdirp");
 const packager = require("electron-packager");
 const path = require("path");
 const rimraf = require("rimraf");
+const uglify = require("uglify-js");
 const webpack = require("webpack");
 const webpackConfig = require("./webpack.config.js");
 
@@ -113,7 +114,6 @@ function buildAppJavascript() {
 
         if (_isProduction) {
             config.devtool = "cheap-module-source-maps";
-            config.plugins.push(new webpack.optimize.UglifyJsPlugin({ minimize: true }));
         } else {
             config.plugins.push(new webpack.LoaderOptionsPlugin({ debug: true }));
         }
@@ -126,7 +126,25 @@ function buildAppJavascript() {
             }
 
             gutil.log("[webpack]", stats.toString());
-            resolve();
+
+            let uglifyPromise = null;
+            if (_isProduction) {
+                // uglify
+                const appPath = path.join(constants.dist, constants.distApp, constants.appOutputFile);
+                const appMapPath = path.join(constants.dist, constants.distApp, constants.appOutputMapFile);
+                const output = uglify.minify(appPath, {
+                    inSourceMap: appMapPath,
+                    outFileName: constants.appOutputFile,
+                    outSourceMap: constants.appOutputMapFile
+                });
+
+                uglifyPromise = Promise.all([writeFile(appPath, output.code), writeFile(appMapPath, output.map)]);
+            }
+
+            Promise.resolve(uglifyPromise)
+                .then(() => {
+                    resolve();
+                });
         });
     });
 }
@@ -300,7 +318,7 @@ function electronPackager(options) {
         const packagerOptions = Object.assign({
             asar: _isProduction,
             dir: `./${constants.dist}/${constants.distApp}`,
-            name: "electron-app",
+            name: "rjs-demo",
             arch: "x64",
             out: `./${constants.dist}/${constants.distPackage}/`,
             overwrite: true
