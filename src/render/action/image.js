@@ -29,9 +29,10 @@ module.exports = {
                 let progress = 0;
                 ipc
                     .getFlickrImage(args => {
-///////////////////////////////////////////////////////////////////////////////////////////////////
-// Ultimately file information from main is used here as properties of actions.
-///////////////////////////////////////////////////////////////////////////////////////////////////
+/*-----------------------------------------------------------------------------------------------*/
+/// #30
+// Chunks from main are assembled in renderer into a blob which is turned into a data URL.
+/*-----------------------------------------------------------------------------------------------*/
                         if (args.chunk) {
                             chunks.push(args.chunk);
                             totalChunkSize += args.chunk.byteLength;

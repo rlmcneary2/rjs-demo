@@ -85,15 +85,19 @@ function sendRequest(request) {
     if (!_asyncResponseConnected) {
         _asyncResponseConnected = true;
 
-///////////////////////////////////////////////////////////////////////////////////////////////////
-// Set a handler for responses from main. The handler has two parameters - evt and args.
-// args is a copy of the object sent from main.
-///////////////////////////////////////////////////////////////////////////////////////////////////
-        ipcRenderer.on("async-event-response", onAsyncResponse);
+/*-----------------------------------------------------------------------------------------------*/
+/// #20
+// In renderer - register a callback handler for messages FROM the main process. The application
+// can define multiple "channels" and attach a separate handler for each channel.
+/*-----------------------------------------------------------------------------------------------*/
+        ipcRenderer.on(ipcShared.asyncResponseChannelName, onAsyncResponse);
     }
 
-///////////////////////////////////////////////////////////////////////////////////////////////////
-// The request is sent to main.
-///////////////////////////////////////////////////////////////////////////////////////////////////
+/*-----------------------------------------------------------------------------------------------*/
+/// #22
+// Send a request TO the main process. The first parameter is the channel name, subsequent
+// parameters will be serialized to JSON (functions and prototype will be discarded) and
+// transferred. #21
+/*-----------------------------------------------------------------------------------------------*/
     ipcRenderer.send(ipcShared.asyncRequestChannelName, request);
 }

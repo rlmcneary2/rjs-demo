@@ -14,6 +14,8 @@ const tmp = require("tmp");
 
 
 const _API_KEY = "38e86e7b27983abbd2d41ddf5f47b9c6";
+let _clickCallback;
+let _clickCount = 0;
 let _progressCallback;
 
 
@@ -22,22 +24,28 @@ module.exports = {
     asyncRequestChannelName: "async-renderer-event",
 
     connect () {
-///////////////////////////////////////////////////////////////////////////////////////////////////
-// Set a handler for requests from renderer.
-// args is a copy of the request object sent by renderer. 
-///////////////////////////////////////////////////////////////////////////////////////////////////
-        ipcMain.on(ipcShared.asyncRequestChannelName, (evt, args) => {
-            switch (args.type) {
+/*-----------------------------------------------------------------------------------------------*/
+/// #21
+// In main - register a callback handler for messages FROM the renderer process. The application
+// can define multiple "channels" and attach a separate handler for each channel.
+// request is a copy of the object sent by renderer. #22
+/*-----------------------------------------------------------------------------------------------*/
+        ipcMain.on(ipcShared.asyncRequestChannelName, (evt, request) => {
+            switch (request.type) {
                 case "getFlickrImage": {
-                    getFlickrImage(evt, args);
+                    getFlickrImage(evt, request);
                     break;
                 }
 
                 default:
-                    console.log(`rendererEvents - no handler for type '${args.type}'.`);
+                    console.log(`rendererEvents - no handler for type '${request.type}'.`);
                     break;
             }
         });
+    },
+
+    setClickCallback(callback){
+        _clickCallback = callback;
     },
 
     setProgressCallback(callback) {
@@ -46,22 +54,29 @@ module.exports = {
 
 };
 
-///////////////////////////////////////////////////////////////////////////////////////////////////
-// Image data is downloaded. The thumbnail image is transferred back to the renderer process.
-// The large image is saved to a temporary file.
-///////////////////////////////////////////////////////////////////////////////////////////////////
-function getFlickrImage(evt, args) {
+function getFlickrImage(evt, request) {
     getInterestingPhoto()
         .then(info => {
             return getPhotoSizes(info.id)
                 .then(sizes => {
+                    // We're getting another image.
+                    _clickCount++;
+                    _clickCallback(_clickCount);
+
                     // Download the thumbnail image.
                     downloadImage(sizes[0].source, (data) => {
 
-///////////////////////////////////////////////////////////////////////////////////////////////////
-// Send the thumbnail image data to renderer.
-///////////////////////////////////////////////////////////////////////////////////////////////////
-                        evt.sender.send(ipcShared.asyncResponseChannelName, Object.assign({ id: args.id }, data));
+/*-----------------------------------------------------------------------------------------------*/
+/// #23a
+// Use the event object to send a request TO the renderer process. The first parameter is the
+// channel name, subsequent parameters will be serialized to JSON (functions and prototype will be
+// discarded) and transferred. #20
+/*-----------------------------------------------------------------------------------------------*/
+                        // The image data is downloaded from Flickr in chunks.
+                        // This is the thumbnail download, each chunk is a
+                        // Uint8Array which can be serialized and passed to the
+                        // renderer process.  
+                        evt.sender.send(ipcShared.asyncResponseChannelName, Object.assign({ id: request.id }, data));
 
                     }, false);
 
@@ -71,7 +86,7 @@ function getFlickrImage(evt, args) {
                         const d = {
                             chunkSize: data.chunk.byteLength,
                             fileSize: data.fileSize,
-                            id: args.id,
+                            id: request.id,
                             path: data.path
                         };
 
@@ -80,15 +95,20 @@ function getFlickrImage(evt, args) {
                             _progressCallback(chunkSizeTotal, d.fileSize);
                         }
 
-///////////////////////////////////////////////////////////////////////////////////////////////////
-// Send download progress to renderer.
-///////////////////////////////////////////////////////////////////////////////////////////////////
+/*-----------------------------------------------------------------------------------------------*/
+/// #23b
+/*-----------------------------------------------------------------------------------------------*/
+                        // The image data is downloaded from Flickr in chunks.
+                        // This is the high resolution download. The
+                        // accumulated total size of all the chunks, along with
+                        // the file size, are passed back to the renderer for
+                        // download progress.  
                         evt.sender.send(ipcShared.asyncResponseChannelName, d);
 
                     });
                 })
                 .then(({path}) => {
-                    evt.sender.send(ipcShared.asyncResponseChannelName, Object.assign({ path, photo: info }, args));
+                    evt.sender.send(ipcShared.asyncResponseChannelName, Object.assign({ path, photo: info }, request));
                 });
         });
 }
