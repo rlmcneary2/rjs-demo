@@ -187,7 +187,7 @@ function getPhotoSizes(id) {
             let large;
             for (let i = 0; i < obj.sizes.size.length; i++) {
                 label = obj.sizes.size[i].label;
-                if (label === "Small 320") {
+                if (label === /*"Small 320"*/ "Medium 640") {
                     thumb = obj.sizes.size[i];
                 } else if (i + 1 === obj.sizes.size.length) {
                     const largeIndex = obj.sizes.size[i].label === "Original" ? i - 1 : i;
